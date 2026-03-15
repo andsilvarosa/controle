@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SOS Controle - Premium Dashboard</title>
+    
+    <!-- Favicon Temático -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='8' cy='8' r='5' stroke='%230f172a' stroke-width='1.5' fill='%2314b8a6'/%3E%3Cpath d='M8 6v4M6 8h4' stroke='white' stroke-width='1.5' stroke-linecap='round'/%3E%3Crect x='10' y='10' width='10' height='12' rx='2' stroke='%230f172a' stroke-width='1.5' fill='white'/%3E%3Crect x='12' y='12' width='6' height='2' rx='0.5' fill='%2394a3b8'/%3E%3C/svg%3E">
+
+    <!-- Tailwind Configuração -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Plus Jakarta Sans', 'sans-serif'],
+            },
+            colors: {
+              dark: {
+                bg: '#0f172a',
+                card: '#1e293b',
+                border: '#334155'
+              }
+            }
+          }
+        }
+      }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Dark Mode Global Styles */
+        html.dark body {
+            background-color: #020617; /* Slate 950 */
+            color: #f8fafc;
+        }
+        
+        /* Light Mode Global Styles */
+        html:not(.dark) body {
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        /* Mesh Gradient Background - Adaptive */
+        html:not(.dark) body {
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,0.05) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,0.05) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,0.05) 0, transparent 50%);
+            background-size: 100% 600px;
+            background-repeat: no-repeat;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        html.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Utilitários de Vidro */
+        .glass-panel {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "@neondatabase/serverless": "https://esm.sh/@neondatabase/serverless@^1.0.2",
+    "@netlify/functions": "https://esm.sh/@netlify/functions@^5.1.2",
+    "crypto": "https://esm.sh/crypto@^1.0.1",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
+    "@libsql/client": "https://esm.sh/@libsql/client@^0.17.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "recharts": "https://esm.sh/recharts@^3.7.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
+    "framer-motion": "https://esm.sh/framer-motion@^12.34.0",
+    "zustand": "https://esm.sh/zustand@^5.0.11",
+    "xlsx": "https://esm.sh/xlsx@^0.18.5",
+    "resend": "https://esm.sh/resend@^6.9.2",
+    "qrcode": "https://esm.sh/qrcode@^1.5.4",
+    "otplib": "https://esm.sh/otplib@^13.3.0",
+    "otpauth": "https://esm.sh/otpauth@^9.5.0",
+    "react-dom": "https://esm.sh/react-dom@^19.2.4"
+  }
+}
+</script>
+</head>
+<body class="antialiased selection:bg-teal-500 selection:text-white">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>

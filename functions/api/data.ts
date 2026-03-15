@@ -1,0 +1,83 @@
+import { getDb } from "../../lib/db";
+import jwt from '@tsndr/cloudflare-worker-jwt';
+
+type PagesFunction<T = any> = (context: {
+  request: Request;
+  env: T;
+  params: any;
+  waitUntil: any;
+  next: any;
+  data: any;
+}) => Response | Promise<Response>;
+
+// 🔑 ATENÇÃO AQUI: Adicionámos o 'Authorization' aos headers permitidos
+const headers = {
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization', 
+};
+
+export const onRequestOptions: PagesFunction = async () => {
+  return new Response(null, { status: 204, headers });
+};
+
+export const onRequestGet: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: string }> = async (context) => {
+  try {
+    const url = new URL(context.request.url);
+    const userId = url.searchParams.get("userId");
+    
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Falta o userId" }), { status: 400, headers });
+    }
+
+    // ==========================================
+    // 🔒 1. O GUARDA DA PORTA: VERIFICA O CRACHÁ
+    // ==========================================
+    const authHeader = context.request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+       return new Response(JSON.stringify({ error: "Acesso Negado. O Token não foi fornecido." }), { status: 401, headers });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const secret = context.env.JWT_SECRET || 'minha_chave_super_secreta_123'; // Lembre-se de configurar isto no painel do Cloudflare!
+
+    // 🔒 2. VERIFICA SE O CRACHÁ É FALSO OU ESTÁ EXPIRADO
+    const isValid = await jwt.verify(token, secret);
+    if (!isValid) {
+       return new Response(JSON.stringify({ error: "Token inválido ou expirado. Faça login novamente." }), { status: 401, headers });
+    }
+
+    // 🔒 3. VERIFICA SE O CRACHÁ PERTENCE À PESSOA CERTA (Evita ataques IDOR)
+    const { payload } = jwt.decode(token);
+    if (payload.id !== userId) {
+       return new Response(JSON.stringify({ error: "Acesso não autorizado a estes dados." }), { status: 403, headers });
+    }
+    // ==========================================
+    // 🔓 FIM DA SEGURANÇA. A PORTA FOI ABERTA!
+    // ==========================================
+
+    const sql = getDb(context.env.DATABASE_URL);
+
+    // Busca os dados no banco
+    const transactions = await sql`SELECT * FROM transactions WHERE user_id = ${userId} ORDER BY date DESC`;
+    const categories = await sql`SELECT * FROM categories WHERE user_id = ${userId}`;
+    const wallets = await sql`SELECT * FROM wallets WHERE user_id = ${userId}`;
+    const budgets = await sql`SELECT * FROM budgets WHERE user_id = ${userId}`;
+    const rules = await sql`SELECT * FROM rules WHERE user_id = ${userId}`;
+    const recurrenceExceptions = await sql`SELECT * FROM recurrence_exceptions WHERE user_id = ${userId}`;
+
+    const data = {
+      transactions,
+      categories,
+      wallets,
+      budgets,
+      rules,
+      recurrenceExceptions
+    };
+
+    return new Response(JSON.stringify(data), { status: 200, headers });
+  } catch (error: any) {
+    return new Response(JSON.stringify({ error: error.message || "Erro interno do servidor" }), { status: 500, headers });
+  }
+};

@@ -1,0 +1,7 @@
+{
+  "name": "SOS Controle",
+  "description": "A high-end financial management dashboard with advanced reporting, automation rules, and Excel integration.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

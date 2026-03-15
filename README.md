@@ -1,20 +1,18 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# O projeto demonstra uma base tecnológica moderna. 
 
-# Run and deploy your AI Studio app
+# Uma implementação inicial competente.  
 
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/823f6462-3c11-43d4-9b65-b1393b35e839
-
-## Run Locally
-
-**Prerequisites:**  Node.js
+# Com interface reativa e conjunto de funcionalidades bem definidas.
 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+
+# O SOS Controle é uma Single-Page Application (SPA).
+
+# Construída com React, Vite e TypeScript. 
+
+# O backend é implementado como Cloudflare Functions (serverless).
+
+# Se comunicam com o banco de dados PostgreSQL do Neon. 
+
+# O estado do frontend é gerenciado pela biblioteca Zustand.
+

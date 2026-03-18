@@ -72,21 +72,27 @@ export const Auth: React.FC = () => {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    console.log("handleLoginSubmit chamado. require2FA:", require2FA);
     
     if (require2FA) {
+        console.log("Tentando validar código 2FA:", twoFactorCode);
         const result = await login(formData.email, formData.password, twoFactorCode);
         if (result.success) {
+            console.log("Login 2FA bem-sucedido!");
             setRequire2FA(false);
             setTwoFactorCode('');
         } else {
+            console.error("Erro na validação do 2FA:", result.message);
             setError(result.message || 'Código inválido.');
         }
         return;
     }
 
+    console.log("Tentando login inicial (passo 1)...");
     const result = await login(formData.email, formData.password);
     
     if (result.success) {
+      console.log("Login inicial bem-sucedido (sem 2FA).");
       if (rememberMe) {
         localStorage.setItem('sos_saved_email', formData.email);
         localStorage.setItem('sos_saved_password', formData.password);
@@ -277,7 +283,6 @@ export const Auth: React.FC = () => {
                                  <input 
                                     type="text"
                                     required
-                                    autoFocus
                                     value={twoFactorCode}
                                     onChange={e => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                                     className="w-full pl-11 pr-4 py-4 bg-slate-900/50 border border-slate-700/50 rounded-xl text-white placeholder:text-slate-600 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all font-bold text-lg tracking-[0.5em] text-center"
@@ -287,6 +292,7 @@ export const Auth: React.FC = () => {
                            </div>
 
                            <button 
+                              type="submit"
                               disabled={isLoading || twoFactorCode.length !== 6}
                               className="w-full py-4 bg-teal-500 hover:bg-teal-400 text-white rounded-xl font-bold text-base shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
                            >
@@ -424,6 +430,7 @@ export const Auth: React.FC = () => {
                        )}
 
                        <button 
+                          type="submit"
                           disabled={isLoading}
                           className="w-full py-4 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white rounded-xl font-bold text-base shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:grayscale mt-2 group relative overflow-hidden"
                        >

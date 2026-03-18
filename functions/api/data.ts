@@ -81,12 +81,12 @@ export const onRequestGet: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: str
     const sql = getDb(context.env.DATABASE_URL);
 
     // Busca os dados no banco
-    const transactions = await sql`SELECT * FROM transactions WHERE user_id = ${targetUserId} ORDER BY date DESC`;
-    const categories = await sql`SELECT * FROM categories WHERE user_id = ${targetUserId}`;
-    const wallets = await sql`SELECT * FROM wallets WHERE user_id = ${targetUserId}`;
-    const budgets = await sql`SELECT * FROM budgets WHERE user_id = ${targetUserId}`;
-    const rules = await sql`SELECT * FROM rules WHERE user_id = ${targetUserId}`;
-    const recurrenceExceptions = await sql`SELECT * FROM recurrence_exceptions WHERE user_id = ${targetUserId}`;
+    const transactions = await sql("SELECT * FROM transactions WHERE user_id = $1 ORDER BY date DESC", [targetUserId]);
+    const categories = await sql("SELECT * FROM categories WHERE user_id = $1", [targetUserId]);
+    const wallets = await sql("SELECT * FROM wallets WHERE user_id = $1", [targetUserId]);
+    const budgets = await sql("SELECT * FROM budgets WHERE user_id = $1", [targetUserId]);
+    const rules = await sql("SELECT * FROM rules WHERE user_id = $1", [targetUserId]);
+    const recurrenceExceptions = await sql("SELECT * FROM recurrence_exceptions WHERE user_id = $1", [targetUserId]);
 
     const data = {
       transactions,

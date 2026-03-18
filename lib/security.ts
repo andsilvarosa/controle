@@ -43,7 +43,7 @@ export const sanitizeInput = (input: string): string => {
 export const logAction = async (sql: any, userId: string | null, action: string, details: string, request: Request) => {
     const ip = request.headers.get("CF-Connecting-IP") || "unknown";
     try {
-        await sql`INSERT INTO audit_logs (id, user_id, action, details, ip_address) VALUES (${crypto.randomUUID()}, ${userId}, ${action}, ${details}, ${ip})`;
+        await sql("INSERT INTO audit_logs (id, user_id, action, details, ip_address) VALUES ($1, $2, $3, $4, $5)", [crypto.randomUUID(), userId, action, details, ip]);
     } catch (e) {
         console.error("Erro ao registrar log de auditoria:", e);
     }

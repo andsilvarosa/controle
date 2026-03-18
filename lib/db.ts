@@ -14,7 +14,7 @@ export const getDb = (databaseUrl: string) => {
 export const initSchema = async (sql: any) => {
   try {
     // --- USERS ---
-    await sql`
+    await sql(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
         name TEXT,
@@ -28,15 +28,15 @@ export const initSchema = async (sql: any) => {
         lock_until TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     try {
-        await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_attempts INTEGER DEFAULT 0`;
-        await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS lock_until TIMESTAMP`;
+        await sql(`ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_attempts INTEGER DEFAULT 0`);
+        await sql(`ALTER TABLE users ADD COLUMN IF NOT EXISTS lock_until TIMESTAMP`);
     } catch (e) { console.log("Migration warning (Users Security):", e); }
 
     // --- AUDIT LOGS ---
-    await sql`
+    await sql(`
       CREATE TABLE IF NOT EXISTS audit_logs (
         id TEXT PRIMARY KEY,
         user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
@@ -45,15 +45,15 @@ export const initSchema = async (sql: any) => {
         ip_address TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     try {
-        await sql`CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id)`;
-        await sql`CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at)`;
+        await sql(`CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id)`);
+        await sql(`CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at)`);
     } catch (e) { console.log("Migration warning (Audit Logs Indexes):", e); }
 
     // --- PASSWORD RESETS ---
-    await sql`
+    await sql(`
       CREATE TABLE IF NOT EXISTS password_resets (
         id TEXT PRIMARY KEY,
         user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
@@ -61,10 +61,10 @@ export const initSchema = async (sql: any) => {
         expires_at TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     // --- CATEGORIES ---
-    await sql`
+    await sql(`
       CREATE TABLE IF NOT EXISTS categories (
         id TEXT PRIMARY KEY,
         user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
@@ -74,10 +74,10 @@ export const initSchema = async (sql: any) => {
         type TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     // --- WALLETS ---
-    await sql`
+    await sql(`
       CREATE TABLE IF NOT EXISTS wallets (
         id TEXT PRIMARY KEY,
         user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
@@ -89,17 +89,17 @@ export const initSchema = async (sql: any) => {
         exchange_rate DECIMAL(10, 4) DEFAULT 1.0000,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     // Migrations para Wallets
     try {
-       await sql`ALTER TABLE wallets ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'BRL'`;
-       await sql`ALTER TABLE wallets ADD COLUMN IF NOT EXISTS exchange_rate DECIMAL(10, 4) DEFAULT 1.0000`;
-       await sql`ALTER TABLE wallets DROP CONSTRAINT IF EXISTS wallets_type_check`;
+       await sql(`ALTER TABLE wallets ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'BRL'`);
+       await sql(`ALTER TABLE wallets ADD COLUMN IF NOT EXISTS exchange_rate DECIMAL(10, 4) DEFAULT 1.0000`);
+       await sql(`ALTER TABLE wallets DROP CONSTRAINT IF EXISTS wallets_type_check`);
     } catch (e) { console.log("Migration info (Wallets):", e); }
 
     // --- TRANSACTIONS ---
-    await sql`
+    await sql(`
       CREATE TABLE IF NOT EXISTS transactions (
         id TEXT PRIMARY KEY,
         user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
@@ -120,19 +120,19 @@ export const initSchema = async (sql: any) => {
         is_subscription INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     // Migrations para Transactions
     try {
-      await sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS wallet_id TEXT`;
-      await sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS master_id TEXT`;
-      await sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS recurrence TEXT DEFAULT 'none'`;
-      await sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_recurring INTEGER DEFAULT 0`;
-      await sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS installments INTEGER DEFAULT 1`;
+      await sql(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS wallet_id TEXT`);
+      await sql(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS master_id TEXT`);
+      await sql(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS recurrence TEXT DEFAULT 'none'`);
+      await sql(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_recurring INTEGER DEFAULT 0`);
+      await sql(`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS installments INTEGER DEFAULT 1`);
     } catch (e) { console.log("Migration warning (Transactions):", e); }
 
     // --- BUDGETS ---
-    await sql`
+    await sql(`
       CREATE TABLE IF NOT EXISTS budgets (
         id TEXT PRIMARY KEY,
         user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
@@ -141,10 +141,10 @@ export const initSchema = async (sql: any) => {
         period TEXT DEFAULT 'monthly',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     // --- RULES ---
-    await sql`
+    await sql(`
       CREATE TABLE IF NOT EXISTS rules (
         id TEXT PRIMARY KEY,
         user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
@@ -153,10 +153,10 @@ export const initSchema = async (sql: any) => {
         category_id TEXT REFERENCES categories(id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     // --- EXCEPTIONS ---
-    await sql`
+    await sql(`
       CREATE TABLE IF NOT EXISTS recurrence_exceptions (
         id TEXT PRIMARY KEY,
         user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
@@ -164,10 +164,10 @@ export const initSchema = async (sql: any) => {
         excluded_date DATE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
     
     try {
-       await sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_recurrence_exceptions_unique ON recurrence_exceptions (transaction_id, excluded_date)`;
+       await sql(`CREATE UNIQUE INDEX IF NOT EXISTS idx_recurrence_exceptions_unique ON recurrence_exceptions (transaction_id, excluded_date)`);
     } catch (e) { /* Ignora se já existir */ }
     
   } catch (e: any) {

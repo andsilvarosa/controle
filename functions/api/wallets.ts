@@ -67,25 +67,20 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
 
     if (action === "create") {
       const cleanName = sanitizeInput(wallet.name);
-      await sql`
-        INSERT INTO wallets (id, user_id, name, type, color, balance, currency, exchange_rate) 
-        VALUES (
-            ${wallet.id}, ${targetUserId}, ${cleanName}, ${wallet.type}, 
-            ${wallet.color}, ${wallet.balance}, ${wallet.currency || 'BRL'}, ${wallet.exchangeRate || 1}
-        )
-      `;
+      await sql(
+        "INSERT INTO wallets (id, user_id, name, type, color, balance, currency, exchange_rate) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", 
+        [wallet.id, targetUserId, cleanName, wallet.type, wallet.color, wallet.balance, wallet.currency || 'BRL', wallet.exchangeRate || 1]
+      );
       await logAction(sql, targetUserId, "WALLET_CREATE", `Criou carteira ${cleanName}.`, context.request);
     } else if (action === "update") {
       const cleanName = sanitizeInput(wallet.name);
-      await sql`
-        UPDATE wallets 
-        SET name=${cleanName}, type=${wallet.type}, color=${wallet.color}, 
-            balance=${wallet.balance}, currency=${wallet.currency || 'BRL'}, exchange_rate=${wallet.exchangeRate || 1} 
-        WHERE id=${wallet.id} AND user_id=${targetUserId}
-      `;
+      await sql(
+        "UPDATE wallets SET name=$1, type=$2, color=$3, balance=$4, currency=$5, exchange_rate=$6 WHERE id=$7 AND user_id=$8", 
+        [cleanName, wallet.type, wallet.color, wallet.balance, wallet.currency || 'BRL', wallet.exchangeRate || 1, wallet.id, targetUserId]
+      );
       await logAction(sql, targetUserId, "WALLET_UPDATE", `Atualizou carteira ${wallet.id}.`, context.request);
     } else if (action === "delete") {
-      await sql`DELETE FROM wallets WHERE id=${id} AND user_id=${targetUserId}`;
+      await sql("DELETE FROM wallets WHERE id=$1 AND user_id=$2", [id, targetUserId]);
       await logAction(sql, targetUserId, "WALLET_DELETE", `Excluiu carteira ${id}.`, context.request);
     }
 

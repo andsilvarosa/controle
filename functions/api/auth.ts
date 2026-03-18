@@ -131,7 +131,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
             return new Response(JSON.stringify({ error: "Sessão expirada." }), { status: 401, headers });
         }
 
-        const rows = await sql`SELECT id, name, email, phone, avatar, two_factor_enabled, created_at FROM users WHERE id = ${authUserId}`;
+        const rows = await sql("SELECT id, name, email, phone, avatar, two_factor_enabled, created_at FROM users WHERE id = $1", [authUserId]);
         if (rows.length === 0) {
             return new Response(JSON.stringify({ error: "Usuário não encontrado." }), { status: 404, headers });
         }
@@ -151,7 +151,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         return new Response(JSON.stringify({ error: "E-mail inválido." }), { status: 400, headers });
       }
 
-      const rows = await sql`SELECT * FROM users WHERE email = ${cleanEmail}`;
+      const rows = await sql("SELECT * FROM users WHERE email = $1", [cleanEmail]);
       
       if (rows.length === 0) {
         return new Response(JSON.stringify({ error: "E-mail ou senha incorretos." }), { status: 401, headers });
@@ -171,22 +171,22 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         const attempts = (user.failed_attempts || 0) + 1;
         if (attempts >= 5) {
             const lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos de bloqueio
-            await sql`UPDATE users SET failed_attempts = ${attempts}, lock_until = ${lockUntil.toISOString()} WHERE id = ${user.id}`;
+            await sql("UPDATE users SET failed_attempts = $1, lock_until = $2 WHERE id = $3", [attempts, lockUntil.toISOString(), user.id]);
             await logAction(sql, user.id, "ACCOUNT_LOCKED", "Múltiplas tentativas de login falhas.", context.request);
             return new Response(JSON.stringify({ error: "Muitas tentativas falhas. Conta bloqueada por 15 minutos." }), { status: 403, headers });
         } else {
-            await sql`UPDATE users SET failed_attempts = ${attempts} WHERE id = ${user.id}`;
+            await sql("UPDATE users SET failed_attempts = $1 WHERE id = $2", [attempts, user.id]);
             return new Response(JSON.stringify({ error: "E-mail ou senha incorretos." }), { status: 401, headers });
         }
       }
 
       // Resetar tentativas falhas após login bem-sucedido
-      await sql`UPDATE users SET failed_attempts = 0, lock_until = NULL WHERE id = ${user.id}`;
+      await sql("UPDATE users SET failed_attempts = 0, lock_until = NULL WHERE id = $1", [user.id]);
       
       // Upgrade password hash se estiver no formato antigo
       if (!user.password.includes(':')) {
          const newHash = await hashPassword(password);
-         await sql`UPDATE users SET password = ${newHash} WHERE id = ${user.id}`;
+         await sql("UPDATE users SET password = $1 WHERE id = $2", [newHash, user.id]);
       }
 
       if (user.two_factor_enabled) {
@@ -246,7 +246,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         return new Response(JSON.stringify({ error: pwdCheck.message }), { status: 400, headers });
       }
 
-      const check = await sql`SELECT id FROM users WHERE email = ${cleanEmail}`;
+      const check = await sql("SELECT id FROM users WHERE email = $1", [cleanEmail]);
       if (check.length > 0) {
         return new Response(JSON.stringify({ error: "Este e-mail já está cadastrado." }), { status: 409, headers });
       }
@@ -255,10 +255,10 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       const rawPassword = userData?.password || password;
       const hashedPassword = await hashPassword(rawPassword);
       
-      await sql`
-        INSERT INTO users (id, name, email, phone, password, avatar) 
-        VALUES (${id}, ${cleanName || "Novo Usuário"}, ${cleanEmail}, ${userData?.phone || null}, ${hashedPassword}, ${userData?.avatar || "icon:User:teal"})
-      `;
+      await sql(
+        "INSERT INTO users (id, name, email, phone, password, avatar) VALUES ($1, $2, $3, $4, $5, $6)", 
+        [id, cleanName || "Novo Usuário", cleanEmail, userData?.phone || null, hashedPassword, userData?.avatar || "icon:User:teal"]
+      );
       
       const defaultCats = [
         { id: crypto.randomUUID(), name: 'Alimentação', icon: 'Utensils', color: '#ef4444', type: 'expense' },
@@ -268,9 +268,9 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       ];
 
       for (const cat of defaultCats) {
-        await sql`INSERT INTO categories (id, user_id, name, icon, color, type) VALUES (${cat.id}, ${id}, ${cat.name}, ${cat.icon}, ${cat.color}, ${cat.type})`;
+        await sql("INSERT INTO categories (id, user_id, name, icon, color, type) VALUES ($1, $2, $3, $4, $5, $6)", [cat.id, id, cat.name, cat.icon, cat.color, cat.type]);
       }
-      await sql`INSERT INTO wallets (id, user_id, name, type, color, balance) VALUES (${crypto.randomUUID()}, ${id}, 'Conta Principal', 'checking', '#14b8a6', 0)`;
+      await sql("INSERT INTO wallets (id, user_id, name, type, color, balance) VALUES ($1, $2, $3, $4, $5, $6)", [crypto.randomUUID(), id, 'Conta Principal', 'checking', '#14b8a6', 0]);
 
       await logAction(sql, id, "SIGNUP_SUCCESS", "Novo usuário cadastrado.", context.request);
 
@@ -293,7 +293,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
        const authUserId = await getAuthUser(context.request);
        if (!authUserId) return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401, headers });
 
-       const userCheck = await sql`SELECT email FROM users WHERE id = ${authUserId}`;
+       const userCheck = await sql("SELECT email FROM users WHERE id = $1", [authUserId]);
        if (userCheck.length === 0) return new Response(JSON.stringify({ error: "Usuário não encontrado." }), { status: 404, headers });
        
        const emailUser = userCheck[0].email;
@@ -317,7 +317,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
        
        if (delta === null) return new Response(JSON.stringify({ error: "Código inválido. Verifique o app autenticador." }), { status: 400, headers });
 
-       await sql`UPDATE users SET two_factor_enabled = TRUE, two_factor_secret = ${secret} WHERE id = ${authUserId}`;
+       await sql("UPDATE users SET two_factor_enabled = TRUE, two_factor_secret = $1 WHERE id = $2", [secret, authUserId]);
        await logAction(sql, authUserId, "2FA_ENABLED", "Autenticação de dois fatores ativada.", context.request);
        return new Response(JSON.stringify({ success: true }), { headers });
     }
@@ -327,13 +327,13 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
        const authUserId = await getAuthUser(context.request);
        if (!authUserId) return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401, headers });
 
-       const userCheck = await sql`SELECT id, password FROM users WHERE id = ${authUserId}`;
+       const userCheck = await sql("SELECT id, password FROM users WHERE id = $1", [authUserId]);
        if (userCheck.length === 0) return new Response(JSON.stringify({ error: "Usuário não encontrado." }), { status: 404, headers });
        
        const isValid = await verifyPassword(currentPassword, userCheck[0].password);
        if (!isValid) return new Response(JSON.stringify({ error: "Senha incorreta." }), { status: 401, headers });
 
-       await sql`UPDATE users SET two_factor_enabled = FALSE, two_factor_secret = NULL WHERE id = ${authUserId}`;
+       await sql("UPDATE users SET two_factor_enabled = FALSE, two_factor_secret = NULL WHERE id = $1", [authUserId]);
        await logAction(sql, authUserId, "2FA_DISABLED", "Autenticação de dois fatores desativada.", context.request);
        return new Response(JSON.stringify({ success: true }), { headers });
     }
@@ -343,7 +343,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         if (!context.env.RESEND_API_KEY) return new Response(JSON.stringify({ error: "Erro de configuração: RESEND_API_KEY não encontrada." }), { status: 500, headers });
 
         const cleanEmail = sanitizeInput(email);
-        const users = await sql`SELECT id, name FROM users WHERE email = ${cleanEmail}`;
+        const users = await sql("SELECT id, name FROM users WHERE email = $1", [cleanEmail]);
         if (users.length === 0) return new Response(JSON.stringify({ error: "E-mail não encontrado em nossa base." }), { status: 404, headers });
 
         const user = users[0];
@@ -354,8 +354,8 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         const origin = requestUrl.origin;
         const resetLink = `${origin}/?token=${resetToken}`;
 
-        await sql`DELETE FROM password_resets WHERE user_id = ${user.id}`;
-        await sql`INSERT INTO password_resets (id, user_id, token, expires_at) VALUES (${crypto.randomUUID()}, ${user.id}, ${resetToken}, ${expiresAt.toISOString()})`;
+        await sql("DELETE FROM password_resets WHERE user_id = $1", [user.id]);
+        await sql("INSERT INTO password_resets (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)", [crypto.randomUUID(), user.id, resetToken, expiresAt.toISOString()]);
 
         try {
             const resend = new Resend(context.env.RESEND_API_KEY);
@@ -421,12 +421,12 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
     // --- RESET PASSWORD CONFIRM ---
     if (action === "reset_password_confirm") {
         const now = new Date().toISOString();
-        const resetRecord = await sql`SELECT * FROM password_resets WHERE token = ${token} AND expires_at > ${now} LIMIT 1`;
+        const resetRecord = await sql("SELECT * FROM password_resets WHERE token = $1 AND expires_at > $2 LIMIT 1", [token, now]);
         if (resetRecord.length === 0) return new Response(JSON.stringify({ error: "Código inválido ou expirado." }), { status: 400, headers });
 
         const hashedNewPassword = await hashPassword(newPassword);
-        await sql`UPDATE users SET password = ${hashedNewPassword} WHERE id = ${resetRecord[0].user_id}`;
-        await sql`DELETE FROM password_resets WHERE id = ${resetRecord[0].id}`;
+        await sql("UPDATE users SET password = $1 WHERE id = $2", [hashedNewPassword, resetRecord[0].user_id]);
+        await sql("DELETE FROM password_resets WHERE id = $1", [resetRecord[0].id]);
 
         await logAction(sql, resetRecord[0].user_id, "PASSWORD_RESET_SUCCESS", "Senha redefinida com sucesso via token.", context.request);
         return new Response(JSON.stringify({ success: true }), { headers });
@@ -440,7 +440,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       const cleanName = sanitizeInput(userData.name);
       const cleanPhone = sanitizeInput(userData.phone);
 
-      await sql`UPDATE users SET name=${cleanName}, phone=${cleanPhone}, avatar=${userData.avatar} WHERE id=${authUserId}`;
+      await sql("UPDATE users SET name=$1, phone=$2, avatar=$3 WHERE id=$4", [cleanName, cleanPhone, userData.avatar, authUserId]);
       await logAction(sql, authUserId, "PROFILE_UPDATED", "Dados do perfil atualizados.", context.request);
       return new Response(JSON.stringify({ success: true }), { headers });
     }
@@ -458,14 +458,14 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         return new Response(JSON.stringify({ error: pwdCheck.message }), { status: 400, headers });
       }
 
-      const userCheck = await sql`SELECT id, password FROM users WHERE id = ${authUserId}`;
+      const userCheck = await sql("SELECT id, password FROM users WHERE id = $1", [authUserId]);
       if (userCheck.length === 0) return new Response(JSON.stringify({ error: "Usuário não encontrado." }), { status: 404, headers });
       
       const isValid = await verifyPassword(currentPassword, userCheck[0].password);
       if (!isValid) return new Response(JSON.stringify({ error: "Senha atual incorreta." }), { status: 401, headers });
       
       const hashedNewPassword = await hashPassword(newPassword);
-      await sql`UPDATE users SET password = ${hashedNewPassword} WHERE id = ${authUserId}`;
+      await sql("UPDATE users SET password = $1 WHERE id = $2", [hashedNewPassword, authUserId]);
       await logAction(sql, authUserId, "PASSWORD_UPDATED", "Senha alterada pelo usuário.", context.request);
       return new Response(JSON.stringify({ success: true }), { headers });
     }

@@ -67,14 +67,14 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
 
     if (action === "create") {
       const cleanCondition = sanitizeInput(rule.condition);
-      await sql`INSERT INTO rules (id, user_id, active, condition, category_id) VALUES (${rule.id}, ${targetUserId}, ${rule.active ? 1 : 0}, ${cleanCondition}, ${rule.categoryId})`;
+      await sql("INSERT INTO rules (id, user_id, active, condition, category_id) VALUES ($1, $2, $3, $4, $5)", [rule.id, targetUserId, rule.active ? 1 : 0, cleanCondition, rule.categoryId]);
       await logAction(sql, targetUserId, "RULE_CREATE", `Criou regra para categoria ${rule.categoryId}.`, context.request);
     } else if (action === "update") {
       const cleanCondition = sanitizeInput(rule.condition);
-      await sql`UPDATE rules SET active=${rule.active ? 1 : 0}, condition=${cleanCondition}, category_id=${rule.categoryId} WHERE id=${rule.id} AND user_id=${targetUserId}`;
+      await sql("UPDATE rules SET active=$1, condition=$2, category_id=$3 WHERE id=$4 AND user_id=$5", [rule.active ? 1 : 0, cleanCondition, rule.categoryId, rule.id, targetUserId]);
       await logAction(sql, targetUserId, "RULE_UPDATE", `Atualizou regra ${rule.id}.`, context.request);
     } else if (action === "delete") {
-      await sql`DELETE FROM rules WHERE id=${id} AND user_id=${targetUserId}`;
+      await sql("DELETE FROM rules WHERE id=$1 AND user_id=$2", [id, targetUserId]);
       await logAction(sql, targetUserId, "RULE_DELETE", `Excluiu regra ${id}.`, context.request);
     }
 

@@ -67,14 +67,14 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
 
     if (action === "create") {
       const cleanName = sanitizeInput(category.name);
-      await sql`INSERT INTO categories (id, user_id, name, icon, color, type) VALUES (${category.id}, ${targetUserId}, ${cleanName}, ${category.icon}, ${category.color}, ${category.type})`;
+      await sql("INSERT INTO categories (id, user_id, name, icon, color, type) VALUES ($1, $2, $3, $4, $5, $6)", [category.id, targetUserId, cleanName, category.icon, category.color, category.type]);
       await logAction(sql, targetUserId, "CATEGORY_CREATE", `Criou categoria ${cleanName}.`, context.request);
     } else if (action === "update") {
       const cleanName = sanitizeInput(category.name);
-      await sql`UPDATE categories SET name=${cleanName}, icon=${category.icon}, color=${category.color}, type=${category.type} WHERE id=${category.id} AND user_id=${targetUserId}`;
+      await sql("UPDATE categories SET name=$1, icon=$2, color=$3, type=$4 WHERE id=$5 AND user_id=$6", [cleanName, category.icon, category.color, category.type, category.id, targetUserId]);
       await logAction(sql, targetUserId, "CATEGORY_UPDATE", `Atualizou categoria ${category.id}.`, context.request);
     } else if (action === "delete") {
-      await sql`DELETE FROM categories WHERE id=${id} AND user_id=${targetUserId}`;
+      await sql("DELETE FROM categories WHERE id=$1 AND user_id=$2", [id, targetUserId]);
       await logAction(sql, targetUserId, "CATEGORY_DELETE", `Excluiu categoria ${id}.`, context.request);
     }
 

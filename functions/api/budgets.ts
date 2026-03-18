@@ -66,19 +66,19 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
     const targetUserId = authUserId;
 
     if (action === "create") {
-      const check = await sql`SELECT id FROM budgets WHERE user_id = ${targetUserId} AND category_id = ${budget.categoryId}`;
+      const check = await sql("SELECT id FROM budgets WHERE user_id = $1 AND category_id = $2", [targetUserId, budget.categoryId]);
       if (check.length > 0) {
-        await sql`UPDATE budgets SET amount=${budget.amount} WHERE user_id=${targetUserId} AND category_id=${budget.categoryId}`;
+        await sql("UPDATE budgets SET amount=$1 WHERE user_id=$2 AND category_id=$3", [budget.amount, targetUserId, budget.categoryId]);
         await logAction(sql, targetUserId, "BUDGET_UPDATE", `Atualizou orçamento para categoria ${budget.categoryId} via create.`, context.request);
       } else {
-        await sql`INSERT INTO budgets (id, user_id, category_id, amount, period) VALUES (${budget.id}, ${targetUserId}, ${budget.categoryId}, ${budget.amount}, ${budget.period || 'monthly'})`;
+        await sql("INSERT INTO budgets (id, user_id, category_id, amount, period) VALUES ($1, $2, $3, $4, $5)", [budget.id, targetUserId, budget.categoryId, budget.amount, budget.period || 'monthly']);
         await logAction(sql, targetUserId, "BUDGET_CREATE", `Criou orçamento para categoria ${budget.categoryId}.`, context.request);
       }
     } else if (action === "update") {
-      await sql`UPDATE budgets SET amount=${budget.amount}, category_id=${budget.categoryId} WHERE id=${budget.id} AND user_id=${targetUserId}`;
+      await sql("UPDATE budgets SET amount=$1, category_id=$2 WHERE id=$3 AND user_id=$4", [budget.amount, budget.categoryId, budget.id, targetUserId]);
       await logAction(sql, targetUserId, "BUDGET_UPDATE", `Atualizou orçamento ${budget.id}.`, context.request);
     } else if (action === "delete") {
-      await sql`DELETE FROM budgets WHERE id=${id} AND user_id=${targetUserId}`;
+      await sql("DELETE FROM budgets WHERE id=$1 AND user_id=$2", [id, targetUserId]);
       await logAction(sql, targetUserId, "BUDGET_DELETE", `Excluiu orçamento ${id}.`, context.request);
     }
 

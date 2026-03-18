@@ -75,8 +75,12 @@ export const Auth: React.FC = () => {
     
     if (require2FA) {
         const result = await login(formData.email, formData.password, twoFactorCode);
-        if (!result.success) {
-            setError(result.message || 'Código inválido.');
+        if (result.success) {
+            setRequire2FA(false);
+            setTwoFactorCode('');
+            setError('');
+        } else {
+            setError(result.message || 'Código inválido ou expirado.');
         }
         return;
     }

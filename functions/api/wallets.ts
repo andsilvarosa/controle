@@ -44,26 +44,32 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
     if (!token) {
        return new Response(JSON.stringify({ error: "Acesso Negado." }), { status: 401, headers });
     }
-    const secret = context.env.JWT_SECRET || 'minha_chave_super_secreta_123';
+    const secret = context.env.JWT_SECRET;
+    if (!secret) {
+        return new Response(JSON.stringify({ error: "Erro de configuração: JWT_SECRET não definida." }), { status: 500, headers });
+    }
     
     if (!(await jwt.verify(token, secret))) {
        return new Response(JSON.stringify({ error: "Token inválido." }), { status: 401, headers });
     }
     const { payload } = jwt.decode(token);
+    const authUserId = (payload as any).id;
 
     const sql = getDb(context.env.DATABASE_URL);
     const body: any = await context.request.json();
     const { action, wallet, id, userId } = body;
 
-    if ((payload as any).id !== userId) {
+    if (userId && authUserId !== userId) {
         return new Response(JSON.stringify({ error: "Acesso não autorizado." }), { status: 403, headers });
     }
+
+    const targetUserId = authUserId;
 
     if (action === "create") {
       await sql`
         INSERT INTO wallets (id, user_id, name, type, color, balance, currency, exchange_rate) 
         VALUES (
-            ${wallet.id}, ${userId}, ${wallet.name}, ${wallet.type}, 
+            ${wallet.id}, ${targetUserId}, ${wallet.name}, ${wallet.type}, 
             ${wallet.color}, ${wallet.balance}, ${wallet.currency || 'BRL'}, ${wallet.exchangeRate || 1}
         )
       `;
@@ -72,10 +78,10 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
         UPDATE wallets 
         SET name=${wallet.name}, type=${wallet.type}, color=${wallet.color}, 
             balance=${wallet.balance}, currency=${wallet.currency || 'BRL'}, exchange_rate=${wallet.exchangeRate || 1} 
-        WHERE id=${wallet.id} AND user_id=${userId}
+        WHERE id=${wallet.id} AND user_id=${targetUserId}
       `;
     } else if (action === "delete") {
-      await sql`DELETE FROM wallets WHERE id=${id} AND user_id=${userId}`;
+      await sql`DELETE FROM wallets WHERE id=${id} AND user_id=${targetUserId}`;
     }
 
     return new Response(JSON.stringify({ success: true }), { headers });

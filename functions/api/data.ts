@@ -55,7 +55,10 @@ export const onRequestGet: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: str
     if (!token) {
        return new Response(JSON.stringify({ error: "Acesso Negado. O Token não foi fornecido." }), { status: 401, headers });
     }
-    const secret = context.env.JWT_SECRET || 'minha_chave_super_secreta_123'; // Lembre-se de configurar isto no painel do Cloudflare!
+    const secret = context.env.JWT_SECRET;
+    if (!secret) {
+        return new Response(JSON.stringify({ error: "Erro de configuração: JWT_SECRET não definida." }), { status: 500, headers });
+    }
 
     // 🔒 2. VERIFICA SE O CRACHÁ É FALSO OU ESTÁ EXPIRADO
     const isValid = await jwt.verify(token, secret);
@@ -65,9 +68,13 @@ export const onRequestGet: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: str
 
     // 🔒 3. VERIFICA SE O CRACHÁ PERTENCE À PESSOA CERTA (Evita ataques IDOR)
     const { payload } = jwt.decode(token);
-    if ((payload as any).id !== userId) {
+    const authUserId = (payload as any).id;
+    
+    if (userId && authUserId !== userId) {
        return new Response(JSON.stringify({ error: "Acesso não autorizado a estes dados." }), { status: 403, headers });
     }
+    
+    const targetUserId = authUserId; // Usar sempre o ID do token por segurança
     // ==========================================
     // 🔓 FIM DA SEGURANÇA. A PORTA FOI ABERTA!
     // ==========================================
@@ -75,12 +82,12 @@ export const onRequestGet: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: str
     const sql = getDb(context.env.DATABASE_URL);
 
     // Busca os dados no banco
-    const transactions = await sql`SELECT * FROM transactions WHERE user_id = ${userId} ORDER BY date DESC`;
-    const categories = await sql`SELECT * FROM categories WHERE user_id = ${userId}`;
-    const wallets = await sql`SELECT * FROM wallets WHERE user_id = ${userId}`;
-    const budgets = await sql`SELECT * FROM budgets WHERE user_id = ${userId}`;
-    const rules = await sql`SELECT * FROM rules WHERE user_id = ${userId}`;
-    const recurrenceExceptions = await sql`SELECT * FROM recurrence_exceptions WHERE user_id = ${userId}`;
+    const transactions = await sql`SELECT * FROM transactions WHERE user_id = ${targetUserId} ORDER BY date DESC`;
+    const categories = await sql`SELECT * FROM categories WHERE user_id = ${targetUserId}`;
+    const wallets = await sql`SELECT * FROM wallets WHERE user_id = ${targetUserId}`;
+    const budgets = await sql`SELECT * FROM budgets WHERE user_id = ${targetUserId}`;
+    const rules = await sql`SELECT * FROM rules WHERE user_id = ${targetUserId}`;
+    const recurrenceExceptions = await sql`SELECT * FROM recurrence_exceptions WHERE user_id = ${targetUserId}`;
 
     const data = {
       transactions,

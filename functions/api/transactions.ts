@@ -47,7 +47,10 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
     if (!token) {
        return new Response(JSON.stringify({ error: "Acesso Negado. O Token não foi fornecido." }), { status: 401, headers });
     }
-    const secret = context.env.JWT_SECRET || 'minha_chave_super_secreta_123';
+    const secret = context.env.JWT_SECRET;
+    if (!secret) {
+        return new Response(JSON.stringify({ error: "Erro de configuração: JWT_SECRET não definida." }), { status: 500, headers });
+    }
 
     const isValid = await jwt.verify(token, secret);
     if (!isValid) {
@@ -55,6 +58,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
     }
     
     const { payload } = jwt.decode(token);
+    const authUserId = (payload as any).id;
     // ==========================================
 
     const sql = getDb(context.env.DATABASE_URL);
@@ -62,9 +66,11 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
     const { action, transaction, id, userId, scope, exceptionDate, masterId } = body; 
 
     // 🔒 3. VALIDAÇÃO ANTI-HACKER (IDOR)
-    if ((payload as any).id !== userId) {
+    if (userId && authUserId !== userId) {
         return new Response(JSON.stringify({ error: "Acesso não autorizado a estes dados." }), { status: 403, headers });
     }
+
+    const targetUserId = authUserId; // Usar sempre o ID do token por segurança
 
     const sanitizeUUID = (val: any) => {
         if (!val) return null;
@@ -99,7 +105,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
             id, user_id, description, amount, date, due_date, category_id, type, 
             is_paid, notes, recurrence, installments, wallet_id, is_recurring, master_id
           ) VALUES (
-            ${t.id}, ${userId}, ${t.description}, ${Number(t.amount).toFixed(2)}, ${cleanDate(t.date)}, ${cleanDate(t.dueDate)}, 
+            ${t.id}, ${targetUserId}, ${t.description}, ${Number(t.amount).toFixed(2)}, ${cleanDate(t.date)}, ${cleanDate(t.dueDate)}, 
             ${sanitizeUUID(t.categoryId)}, ${t.type}, ${t.isPaid ? 1 : 0}, ${t.notes}, 
             ${t.recurrence}, ${t.installments || 1}, ${sanitizeUUID(t.walletId)}, ${isRecurring}, ${sanitizeUUID(t.masterId)}
           )
@@ -132,7 +138,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
                 recurrence, installments, wallet_id, is_recurring, master_id
             ) VALUES (
                 ${transaction.id}, 
-                ${userId}, 
+                ${targetUserId}, 
                 ${transaction.description}, 
                 ${safeAmount}, 
                 ${safeDate}, 
@@ -159,7 +165,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
         if (existingException.length === 0) {
             await sql`
                 INSERT INTO recurrence_exceptions (id, user_id, transaction_id, excluded_date)
-                VALUES (${exceptionId}, ${userId}, ${safeMasterId}, ${safeExceptionDate})
+                VALUES (${exceptionId}, ${targetUserId}, ${safeMasterId}, ${safeExceptionDate})
             `;
         }
 
@@ -168,7 +174,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
         }
     }
     else if (action === "update") {
-      const oldRows = await sql`SELECT * FROM transactions WHERE id=${transaction.id} AND user_id=${userId}`;
+      const oldRows = await sql`SELECT * FROM transactions WHERE id=${transaction.id} AND user_id=${targetUserId}`;
       if (oldRows.length > 0) {
         const oldT = oldRows[0];
         const wasPaid = oldT.is_paid === 1 || oldT.is_paid === true;
@@ -190,7 +196,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
           recurrence=${transaction.recurrence || 'none'}, 
           installments=${transaction.installments || 1}, 
           wallet_id=${sanitizeUUID(transaction.walletId)} 
-        WHERE id=${transaction.id} AND user_id=${userId}
+        WHERE id=${transaction.id} AND user_id=${targetUserId}
       `;
 
       if (transaction.isPaid && transaction.walletId) {
@@ -206,11 +212,11 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
          if (existingEx.length === 0) {
              await sql`
                 INSERT INTO recurrence_exceptions (id, user_id, transaction_id, excluded_date)
-                VALUES (${exceptionId}, ${userId}, ${id}, ${safeExceptionDate})
+                VALUES (${exceptionId}, ${targetUserId}, ${id}, ${safeExceptionDate})
              `;
          }
       } else {
-          const rows = await sql`SELECT * FROM transactions WHERE id = ${id} AND user_id = ${userId}`;
+          const rows = await sql`SELECT * FROM transactions WHERE id = ${id} AND user_id = ${targetUserId}`;
           if (rows.length > 0) {
             const t = rows[0];
             const wasPaid = t.is_paid === 1 || t.is_paid === true;
@@ -218,7 +224,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
               await updateWalletBalance(t.wallet_id, Number(t.amount), t.type, true);
             }
           }
-          await sql`DELETE FROM transactions WHERE (id = ${id} OR master_id = ${id}) AND user_id = ${userId}`;
+          await sql`DELETE FROM transactions WHERE (id = ${id} OR master_id = ${id}) AND user_id = ${targetUserId}`;
           await sql`DELETE FROM recurrence_exceptions WHERE transaction_id = ${id}`;
       }
     } 

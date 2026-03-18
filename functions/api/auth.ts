@@ -88,11 +88,13 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
     const { action, email, password, userData, currentPassword, newPassword, userId, token, twoFactorToken, secret } = body;
 
     // 🔑 Senha secreta para assinar o crachá (JWT)
-    const JWT_SECRET = context.env.JWT_SECRET || 'minha_chave_super_secreta_123';
+    const JWT_SECRET = context.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+        return new Response(JSON.stringify({ error: "Erro de configuração: JWT_SECRET não definida." }), { status: 500, headers });
+    }
 
-    // --- CHECK SESSION ---
-    if (action === "check_session") {
-        const cookieHeader = context.request.headers.get("Cookie");
+    const getAuthUser = async (req: Request) => {
+        const cookieHeader = req.headers.get("Cookie");
         let token = null;
         if (cookieHeader) {
             const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
@@ -104,30 +106,38 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         }
 
         if (!token) {
-            const authHeader = context.request.headers.get("Authorization");
+            const authHeader = req.headers.get("Authorization");
             if (authHeader && authHeader.startsWith("Bearer ")) {
                 token = authHeader.split(" ")[1];
             }
         }
 
-        if (!token) {
+        if (!token) return null;
+
+        try {
+            const isValid = await jwt.verify(token, JWT_SECRET);
+            if (!isValid) return null;
+            const { payload } = jwt.decode(token);
+            return (payload as any).id;
+        } catch (e) {
+            return null;
+        }
+    };
+
+    // --- CHECK SESSION ---
+    if (action === "check_session") {
+        const authUserId = await getAuthUser(context.request);
+        if (!authUserId) {
             return new Response(JSON.stringify({ error: "Sessão expirada." }), { status: 401, headers });
         }
 
-        const isValid = await jwt.verify(token, JWT_SECRET);
-        if (!isValid) {
-            return new Response(JSON.stringify({ error: "Sessão inválida." }), { status: 401, headers });
-        }
-
-        const { payload } = jwt.decode(token);
-        const userId = (payload as any).id;
-        const rows = await sql`SELECT * FROM users WHERE id = ${userId}`;
+        const rows = await sql`SELECT id, name, email, phone, avatar, two_factor_enabled, created_at FROM users WHERE id = ${authUserId}`;
         if (rows.length === 0) {
             return new Response(JSON.stringify({ error: "Usuário não encontrado." }), { status: 404, headers });
         }
 
         const user = rows[0];
-        return new Response(JSON.stringify({ ...user, token }), { headers });
+        return new Response(JSON.stringify(user), { headers });
     }
 
     // --- LOGIN FLOW ---
@@ -173,7 +183,8 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
            // 🎫 SUCESSO 2FA: Gera o Token (Crachá)
            const tokenJWT = await jwt.sign({ id: user.id, email: user.email, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
            const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`;
-           return new Response(JSON.stringify({ ...user, token: tokenJWT }), { headers: { ...headers, 'Set-Cookie': cookieHeader } });
+           const { password: _, two_factor_secret: __, ...userSafe } = user;
+           return new Response(JSON.stringify({ ...userSafe, token: tokenJWT }), { headers: { ...headers, 'Set-Cookie': cookieHeader } });
         } else {
            return new Response(JSON.stringify({ require2fa: true, tempId: user.id }), { headers });
         }
@@ -182,7 +193,8 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       // 🎫 SUCESSO LOGIN NORMAL: Gera o Token (Crachá)
       const tokenJWT = await jwt.sign({ id: user.id, email: user.email, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
       const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`;
-      return new Response(JSON.stringify({ ...user, token: tokenJWT }), { headers: { ...headers, 'Set-Cookie': cookieHeader } });
+      const { password: _, two_factor_secret: __, ...userSafe } = user;
+      return new Response(JSON.stringify({ ...userSafe, token: tokenJWT }), { headers: { ...headers, 'Set-Cookie': cookieHeader } });
     }
 
     // --- SIGNUP ---
@@ -192,7 +204,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         return new Response(JSON.stringify({ error: "Este e-mail já está cadastrado." }), { status: 409, headers });
       }
 
-      const id = userData?.id || crypto.randomUUID();
+      const id = crypto.randomUUID(); // Não aceitar ID do frontend por segurança
       const rawPassword = userData?.password || password;
       const hashedPassword = await hashPassword(rawPassword);
       
@@ -216,7 +228,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       // 🎫 SUCESSO CADASTRO: Gera o Token (Crachá)
       const tokenJWT = await jwt.sign({ id: id, email: email, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
       const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`;
-      return new Response(JSON.stringify({ ...userData, id, token: tokenJWT }), { status: 201, headers: { ...headers, 'Set-Cookie': cookieHeader } });
+      return new Response(JSON.stringify({ id, name: userData?.name || "Novo Usuário", email, token: tokenJWT }), { status: 201, headers: { ...headers, 'Set-Cookie': cookieHeader } });
     }
 
     // --- LOGOUT ---
@@ -227,7 +239,10 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
 
     // --- 2FA SETUP: GENERATE ---
     if (action === "2fa_generate") {
-       const userCheck = await sql`SELECT email FROM users WHERE id = ${userId}`;
+       const authUserId = await getAuthUser(context.request);
+       if (!authUserId) return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401, headers });
+
+       const userCheck = await sql`SELECT email FROM users WHERE id = ${authUserId}`;
        if (userCheck.length === 0) return new Response(JSON.stringify({ error: "Usuário não encontrado." }), { status: 404, headers });
        
        const emailUser = userCheck[0].email;
@@ -241,6 +256,9 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
 
     // --- 2FA SETUP: ENABLE/VERIFY ---
     if (action === "2fa_enable") {
+       const authUserId = await getAuthUser(context.request);
+       if (!authUserId) return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401, headers });
+
        if (!secret || !twoFactorToken) return new Response(JSON.stringify({ error: "Dados incompletos." }), { status: 400, headers });
 
        const totp = new OTPAuth.TOTP({ algorithm: 'SHA1', digits: 6, period: 30, secret: OTPAuth.Secret.fromBase32(secret) });
@@ -248,19 +266,22 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
        
        if (delta === null) return new Response(JSON.stringify({ error: "Código inválido. Verifique o app autenticador." }), { status: 400, headers });
 
-       await sql`UPDATE users SET two_factor_enabled = TRUE, two_factor_secret = ${secret} WHERE id = ${userId}`;
+       await sql`UPDATE users SET two_factor_enabled = TRUE, two_factor_secret = ${secret} WHERE id = ${authUserId}`;
        return new Response(JSON.stringify({ success: true }), { headers });
     }
 
     // --- 2FA DISABLE ---
     if (action === "2fa_disable") {
-       const userCheck = await sql`SELECT id, password FROM users WHERE id = ${userId}`;
+       const authUserId = await getAuthUser(context.request);
+       if (!authUserId) return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401, headers });
+
+       const userCheck = await sql`SELECT id, password FROM users WHERE id = ${authUserId}`;
        if (userCheck.length === 0) return new Response(JSON.stringify({ error: "Usuário não encontrado." }), { status: 404, headers });
        
        const isValid = await verifyPassword(currentPassword, userCheck[0].password);
        if (!isValid) return new Response(JSON.stringify({ error: "Senha incorreta." }), { status: 401, headers });
 
-       await sql`UPDATE users SET two_factor_enabled = FALSE, two_factor_secret = NULL WHERE id = ${userId}`;
+       await sql`UPDATE users SET two_factor_enabled = FALSE, two_factor_secret = NULL WHERE id = ${authUserId}`;
        return new Response(JSON.stringify({ success: true }), { headers });
     }
 
@@ -357,19 +378,25 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
 
     // --- UPDATE PROFILE / PASSWORD ---
     if (action === "update_profile") {
-      await sql`UPDATE users SET name=${userData.name}, phone=${userData.phone}, avatar=${userData.avatar} WHERE id=${userData.id}`;
+      const authUserId = await getAuthUser(context.request);
+      if (!authUserId) return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401, headers });
+
+      await sql`UPDATE users SET name=${userData.name}, phone=${userData.phone}, avatar=${userData.avatar} WHERE id=${authUserId}`;
       return new Response(JSON.stringify({ success: true }), { headers });
     }
 
     if (action === "update_password") {
-      const userCheck = await sql`SELECT id, password FROM users WHERE id = ${userId}`;
+      const authUserId = await getAuthUser(context.request);
+      if (!authUserId) return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401, headers });
+
+      const userCheck = await sql`SELECT id, password FROM users WHERE id = ${authUserId}`;
       if (userCheck.length === 0) return new Response(JSON.stringify({ error: "Usuário não encontrado." }), { status: 404, headers });
       
       const isValid = await verifyPassword(currentPassword, userCheck[0].password);
       if (!isValid) return new Response(JSON.stringify({ error: "Senha atual incorreta." }), { status: 401, headers });
       
       const hashedNewPassword = await hashPassword(newPassword);
-      await sql`UPDATE users SET password = ${hashedNewPassword} WHERE id = ${userId}`;
+      await sql`UPDATE users SET password = ${hashedNewPassword} WHERE id = ${authUserId}`;
       return new Response(JSON.stringify({ success: true }), { headers });
     }
 

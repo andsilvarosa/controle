@@ -91,18 +91,12 @@ export const initSchema = async (sql: any) => {
       )
     `;
 
-    // CRITICAL MIGRATION FOR WALLETS:
-    // Garante que as colunas novas existam em bancos já criados
+    // Migrations para Wallets
     try {
        await sql`ALTER TABLE wallets ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'BRL'`;
        await sql`ALTER TABLE wallets ADD COLUMN IF NOT EXISTS exchange_rate DECIMAL(10, 4) DEFAULT 1.0000`;
-       
-       // Tenta remover a restrição de tipos antiga para aceitar 'travel'
-       // O nome padrão costuma ser 'wallets_type_check' no Postgres
        await sql`ALTER TABLE wallets DROP CONSTRAINT IF EXISTS wallets_type_check`;
-    } catch (e) {
-       console.log("Migration info (Wallets):", e);
-    }
+    } catch (e) { console.log("Migration info (Wallets):", e); }
 
     // --- TRANSACTIONS ---
     await sql`
@@ -128,16 +122,14 @@ export const initSchema = async (sql: any) => {
       )
     `;
 
-    // Transaction Migrations
+    // Migrations para Transactions
     try {
       await sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS wallet_id TEXT`;
       await sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS master_id TEXT`;
       await sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS recurrence TEXT DEFAULT 'none'`;
       await sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_recurring INTEGER DEFAULT 0`;
       await sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS installments INTEGER DEFAULT 1`;
-    } catch (e) { 
-       console.log("Migration warning (Transactions):", e); 
-    }
+    } catch (e) { console.log("Migration warning (Transactions):", e); }
 
     // --- BUDGETS ---
     await sql`
@@ -168,17 +160,15 @@ export const initSchema = async (sql: any) => {
       CREATE TABLE IF NOT EXISTS recurrence_exceptions (
         id TEXT PRIMARY KEY,
         user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
-        transaction_id TEXT, 
-        excluded_date DATE, 
+        transaction_id TEXT,
+        excluded_date DATE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
     
     try {
        await sql`CREATE UNIQUE INDEX IF NOT EXISTS idx_recurrence_exceptions_unique ON recurrence_exceptions (transaction_id, excluded_date)`;
-    } catch (e) {
-       // Ignora erro se índice já existir
-    }
+    } catch (e) { /* Ignora se já existir */ }
     
   } catch (e: any) {
     console.error("[Schema Init Error]", e.message);

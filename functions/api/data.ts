@@ -1,4 +1,5 @@
 import { getDb } from "../../lib/db";
+import { getSecurityHeaders } from "../../lib/security";
 import jwt from '@tsndr/cloudflare-worker-jwt';
 
 type PagesFunction<T = any> = (context: {
@@ -10,13 +11,7 @@ type PagesFunction<T = any> = (context: {
   data: any;
 }) => Response | Promise<Response>;
 
-// 🔑 ATENÇÃO AQUI: Adicionámos o 'Authorization' aos headers permitidos
-const headers = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization', 
-};
+const headers = getSecurityHeaders();
 
 export const onRequestOptions: PagesFunction = async () => {
   return new Response(null, { status: 204, headers });

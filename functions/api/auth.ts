@@ -1,4 +1,5 @@
 import { getDb } from "../../lib/db";
+import { getSecurityHeaders, validatePassword, validateEmail } from "../../lib/security";
 import { Resend } from 'resend';
 import * as OTPAuth from 'otpauth';
 import jwt from '@tsndr/cloudflare-worker-jwt'; // <-- A biblioteca que você instalou
@@ -12,12 +13,7 @@ type PagesFunction<T = any> = (context: {
     data: any;
 }) => Response | Promise<Response>;
 
-const headers = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+const headers = getSecurityHeaders();
 
 async function hashPassword(password: string): Promise<string> {
   const salt = crypto.getRandomValues(new Uint8Array(16));
@@ -142,6 +138,14 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
 
     // --- LOGIN FLOW ---
     if (action === "login") {
+      if (!email || !password) {
+        return new Response(JSON.stringify({ error: "E-mail e senha são obrigatórios." }), { status: 400, headers });
+      }
+      
+      if (!validateEmail(email)) {
+        return new Response(JSON.stringify({ error: "E-mail inválido." }), { status: 400, headers });
+      }
+
       const rows = await sql`SELECT * FROM users WHERE email = ${email}`;
       
       if (rows.length === 0) {
@@ -199,6 +203,19 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
 
     // --- SIGNUP ---
     if (action === "signup") {
+      if (!email || !password || !userData?.name) {
+        return new Response(JSON.stringify({ error: "Todos os campos são obrigatórios." }), { status: 400, headers });
+      }
+      
+      if (!validateEmail(email)) {
+        return new Response(JSON.stringify({ error: "E-mail inválido." }), { status: 400, headers });
+      }
+      
+      const pwdCheck = validatePassword(password);
+      if (!pwdCheck.valid) {
+        return new Response(JSON.stringify({ error: pwdCheck.message }), { status: 400, headers });
+      }
+
       const check = await sql`SELECT id FROM users WHERE email = ${email}`;
       if (check.length > 0) {
         return new Response(JSON.stringify({ error: "Este e-mail já está cadastrado." }), { status: 409, headers });
@@ -388,6 +405,15 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
     if (action === "update_password") {
       const authUserId = await getAuthUser(context.request);
       if (!authUserId) return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401, headers });
+
+      if (!currentPassword || !newPassword) {
+        return new Response(JSON.stringify({ error: "Senha atual e nova senha são obrigatórias." }), { status: 400, headers });
+      }
+      
+      const pwdCheck = validatePassword(newPassword);
+      if (!pwdCheck.valid) {
+        return new Response(JSON.stringify({ error: pwdCheck.message }), { status: 400, headers });
+      }
 
       const userCheck = await sql`SELECT id, password FROM users WHERE id = ${authUserId}`;
       if (userCheck.length === 0) return new Response(JSON.stringify({ error: "Usuário não encontrado." }), { status: 404, headers });

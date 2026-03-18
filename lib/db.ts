@@ -24,14 +24,33 @@ export const initSchema = async (sql: any) => {
         avatar TEXT,
         two_factor_enabled BOOLEAN DEFAULT FALSE,
         two_factor_secret TEXT,
+        failed_attempts INTEGER DEFAULT 0,
+        lock_until TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
 
     try {
-        await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE`;
-        await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT`;
-    } catch (e) { console.log("Migration warning (Users):", e); }
+        await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_attempts INTEGER DEFAULT 0`;
+        await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS lock_until TIMESTAMP`;
+    } catch (e) { console.log("Migration warning (Users Security):", e); }
+
+    // --- AUDIT LOGS ---
+    await sql`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id TEXT PRIMARY KEY,
+        user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+        action TEXT,
+        details TEXT,
+        ip_address TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    try {
+        await sql`CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id)`;
+        await sql`CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at)`;
+    } catch (e) { console.log("Migration warning (Audit Logs Indexes):", e); }
 
     // --- PASSWORD RESETS ---
     await sql`

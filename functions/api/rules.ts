@@ -1,5 +1,5 @@
 import { getDb } from "../../lib/db";
-import { getSecurityHeaders } from "../../lib/security";
+import { getSecurityHeaders, sanitizeInput, logAction } from "../../lib/security";
 import jwt from '@tsndr/cloudflare-worker-jwt';
 
 type PagesFunction<T = any> = (context: {
@@ -13,11 +13,15 @@ type PagesFunction<T = any> = (context: {
 
 const headers = getSecurityHeaders();
 
-export const onRequestOptions: PagesFunction = async () => {
+export const onRequestOptions: PagesFunction = async (context) => {
+  const origin = context.request.headers.get("Origin");
+  const headers = getSecurityHeaders(origin);
   return new Response(null, { status: 204, headers });
 };
 
 export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: string }> = async (context) => {
+  const origin = context.request.headers.get("Origin");
+  const headers = getSecurityHeaders(origin);
   try {
     const cookieHeader = context.request.headers.get("Cookie");
     let token = null;
@@ -62,11 +66,16 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
     const targetUserId = authUserId;
 
     if (action === "create") {
-      await sql`INSERT INTO rules (id, user_id, active, condition, category_id) VALUES (${rule.id}, ${targetUserId}, ${rule.active ? 1 : 0}, ${rule.condition}, ${rule.categoryId})`;
+      const cleanCondition = sanitizeInput(rule.condition);
+      await sql`INSERT INTO rules (id, user_id, active, condition, category_id) VALUES (${rule.id}, ${targetUserId}, ${rule.active ? 1 : 0}, ${cleanCondition}, ${rule.categoryId})`;
+      await logAction(sql, targetUserId, "RULE_CREATE", `Criou regra para categoria ${rule.categoryId}.`, context.request);
     } else if (action === "update") {
-      await sql`UPDATE rules SET active=${rule.active ? 1 : 0}, condition=${rule.condition}, category_id=${rule.categoryId} WHERE id=${rule.id} AND user_id=${targetUserId}`;
+      const cleanCondition = sanitizeInput(rule.condition);
+      await sql`UPDATE rules SET active=${rule.active ? 1 : 0}, condition=${cleanCondition}, category_id=${rule.categoryId} WHERE id=${rule.id} AND user_id=${targetUserId}`;
+      await logAction(sql, targetUserId, "RULE_UPDATE", `Atualizou regra ${rule.id}.`, context.request);
     } else if (action === "delete") {
       await sql`DELETE FROM rules WHERE id=${id} AND user_id=${targetUserId}`;
+      await logAction(sql, targetUserId, "RULE_DELETE", `Excluiu regra ${id}.`, context.request);
     }
 
     return new Response(JSON.stringify({ success: true }), { headers });

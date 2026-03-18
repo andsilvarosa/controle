@@ -1,5 +1,5 @@
 import { getDb } from "../../lib/db";
-import { getSecurityHeaders } from "../../lib/security";
+import { getSecurityHeaders, sanitizeInput, logAction } from "../../lib/security";
 import jwt from '@tsndr/cloudflare-worker-jwt';
 
 type PagesFunction<T = any> = (context: {
@@ -13,11 +13,15 @@ type PagesFunction<T = any> = (context: {
 
 const headers = getSecurityHeaders();
 
-export const onRequestOptions: PagesFunction = async () => {
+export const onRequestOptions: PagesFunction = async (context) => {
+  const origin = context.request.headers.get("Origin");
+  const headers = getSecurityHeaders(origin);
   return new Response(null, { status: 204, headers });
 };
 
 export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: string }> = async (context) => {
+  const origin = context.request.headers.get("Origin");
+  const headers = getSecurityHeaders(origin);
   try {
     // ==========================================
     // 🔒 1. O GUARDA DA PORTA: VERIFICA O CRACHÁ
@@ -95,14 +99,16 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
       
       for (const t of txs) {
         const isRecurring = t.recurrence !== 'none' || (t.installments && t.installments > 1);
+        const cleanDescription = sanitizeInput(t.description);
+        const cleanNotes = sanitizeInput(t.notes || "");
         
         await sql`
           INSERT INTO transactions (
             id, user_id, description, amount, date, due_date, category_id, type, 
             is_paid, notes, recurrence, installments, wallet_id, is_recurring, master_id
           ) VALUES (
-            ${t.id}, ${targetUserId}, ${t.description}, ${Number(t.amount).toFixed(2)}, ${cleanDate(t.date)}, ${cleanDate(t.dueDate)}, 
-            ${sanitizeUUID(t.categoryId)}, ${t.type}, ${t.isPaid ? 1 : 0}, ${t.notes}, 
+            ${t.id}, ${targetUserId}, ${cleanDescription}, ${Number(t.amount).toFixed(2)}, ${cleanDate(t.date)}, ${cleanDate(t.dueDate)}, 
+            ${sanitizeUUID(t.categoryId)}, ${t.type}, ${t.isPaid ? 1 : 0}, ${cleanNotes}, 
             ${t.recurrence}, ${t.installments || 1}, ${sanitizeUUID(t.walletId)}, ${isRecurring}, ${sanitizeUUID(t.masterId)}
           )
         `;
@@ -111,6 +117,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
           await updateWalletBalance(t.walletId, Number(t.amount), t.type, false);
         }
       }
+      await logAction(sql, targetUserId, action === "bulk_create" ? "TRANSACTION_BULK_CREATE" : "TRANSACTION_CREATE", `Criou ${txs.length} transação(ões).`, context.request);
     } 
     else if (action === "create_override") {
         const safeMasterId = sanitizeUUID(masterId);
@@ -123,7 +130,8 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
         const safePaid = transaction.isPaid ? 1 : 0;
         const safeWalletId = sanitizeUUID(transaction.walletId);
         const safeCategoryId = sanitizeUUID(transaction.categoryId);
-        const safeNotes = transaction.notes || '';
+        const safeDescription = sanitizeInput(transaction.description);
+        const safeNotes = sanitizeInput(transaction.notes || '');
         const safeDate = cleanDate(transaction.date);
         const safeDueDate = cleanDate(transaction.dueDate);
 
@@ -135,7 +143,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
             ) VALUES (
                 ${transaction.id}, 
                 ${targetUserId}, 
-                ${transaction.description}, 
+                ${safeDescription}, 
                 ${safeAmount}, 
                 ${safeDate}, 
                 ${safeDueDate}, 
@@ -168,6 +176,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
         if (transaction.isPaid && safeWalletId) {
             await updateWalletBalance(safeWalletId, Number(transaction.amount), transaction.type, false);
         }
+        await logAction(sql, targetUserId, "TRANSACTION_OVERRIDE", `Criou exceção para transação recorrente ${safeMasterId}.`, context.request);
     }
     else if (action === "update") {
       const oldRows = await sql`SELECT * FROM transactions WHERE id=${transaction.id} AND user_id=${targetUserId}`;
@@ -179,16 +188,19 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
         }
       }
 
+      const cleanDescription = sanitizeInput(transaction.description);
+      const cleanNotes = sanitizeInput(transaction.notes || "");
+
       await sql`
         UPDATE transactions SET 
-          description=${transaction.description}, 
+          description=${cleanDescription}, 
           amount=${Number(transaction.amount).toFixed(2)}, 
           date=${cleanDate(transaction.date)}, 
           due_date=${cleanDate(transaction.dueDate)}, 
           category_id=${sanitizeUUID(transaction.categoryId)}, 
           type=${transaction.type}, 
           is_paid=${transaction.isPaid ? 1 : 0}, 
-          notes=${transaction.notes}, 
+          notes=${cleanNotes}, 
           recurrence=${transaction.recurrence || 'none'}, 
           installments=${transaction.installments || 1}, 
           wallet_id=${sanitizeUUID(transaction.walletId)} 
@@ -198,6 +210,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
       if (transaction.isPaid && transaction.walletId) {
         await updateWalletBalance(transaction.walletId, Number(transaction.amount), transaction.type, false);
       }
+      await logAction(sql, targetUserId, "TRANSACTION_UPDATE", `Atualizou transação ${transaction.id}.`, context.request);
     } 
     else if (action === "delete") {
       if (scope === 'single' && exceptionDate) {
@@ -211,6 +224,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
                 VALUES (${exceptionId}, ${targetUserId}, ${id}, ${safeExceptionDate})
              `;
          }
+         await logAction(sql, targetUserId, "TRANSACTION_DELETE_SINGLE", `Excluiu ocorrência de ${id} em ${safeExceptionDate}.`, context.request);
       } else {
           const rows = await sql`SELECT * FROM transactions WHERE id = ${id} AND user_id = ${targetUserId}`;
           if (rows.length > 0) {
@@ -222,6 +236,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
           }
           await sql`DELETE FROM transactions WHERE (id = ${id} OR master_id = ${id}) AND user_id = ${targetUserId}`;
           await sql`DELETE FROM recurrence_exceptions WHERE transaction_id = ${id}`;
+          await logAction(sql, targetUserId, "TRANSACTION_DELETE", `Excluiu transação ${id} (e suas recorrências).`, context.request);
       }
     } 
 

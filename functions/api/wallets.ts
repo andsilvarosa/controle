@@ -1,5 +1,5 @@
 import { getDb } from "../../lib/db";
-import { getSecurityHeaders } from "../../lib/security";
+import { getSecurityHeaders, sanitizeInput, logAction } from "../../lib/security";
 import jwt from '@tsndr/cloudflare-worker-jwt';
 
 type PagesFunction<T = any> = (context: {
@@ -13,11 +13,15 @@ type PagesFunction<T = any> = (context: {
 
 const headers = getSecurityHeaders();
 
-export const onRequestOptions: PagesFunction = async () => {
+export const onRequestOptions: PagesFunction = async (context) => {
+  const origin = context.request.headers.get("Origin");
+  const headers = getSecurityHeaders(origin);
   return new Response(null, { status: 204, headers });
 };
 
 export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: string }> = async (context) => {
+  const origin = context.request.headers.get("Origin");
+  const headers = getSecurityHeaders(origin);
   try {
     const cookieHeader = context.request.headers.get("Cookie");
     let token = null;
@@ -62,22 +66,27 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
     const targetUserId = authUserId;
 
     if (action === "create") {
+      const cleanName = sanitizeInput(wallet.name);
       await sql`
         INSERT INTO wallets (id, user_id, name, type, color, balance, currency, exchange_rate) 
         VALUES (
-            ${wallet.id}, ${targetUserId}, ${wallet.name}, ${wallet.type}, 
+            ${wallet.id}, ${targetUserId}, ${cleanName}, ${wallet.type}, 
             ${wallet.color}, ${wallet.balance}, ${wallet.currency || 'BRL'}, ${wallet.exchangeRate || 1}
         )
       `;
+      await logAction(sql, targetUserId, "WALLET_CREATE", `Criou carteira ${cleanName}.`, context.request);
     } else if (action === "update") {
+      const cleanName = sanitizeInput(wallet.name);
       await sql`
         UPDATE wallets 
-        SET name=${wallet.name}, type=${wallet.type}, color=${wallet.color}, 
+        SET name=${cleanName}, type=${wallet.type}, color=${wallet.color}, 
             balance=${wallet.balance}, currency=${wallet.currency || 'BRL'}, exchange_rate=${wallet.exchangeRate || 1} 
         WHERE id=${wallet.id} AND user_id=${targetUserId}
       `;
+      await logAction(sql, targetUserId, "WALLET_UPDATE", `Atualizou carteira ${wallet.id}.`, context.request);
     } else if (action === "delete") {
       await sql`DELETE FROM wallets WHERE id=${id} AND user_id=${targetUserId}`;
+      await logAction(sql, targetUserId, "WALLET_DELETE", `Excluiu carteira ${id}.`, context.request);
     }
 
     return new Response(JSON.stringify({ success: true }), { headers });

@@ -1,8 +1,8 @@
 import { getDb } from "../../lib/db";
-import { getSecurityHeaders, validatePassword, validateEmail } from "../../lib/security";
+import { getSecurityHeaders, validatePassword, validateEmail, sanitizeInput, logAction } from "../../lib/security";
 import { Resend } from 'resend';
 import * as OTPAuth from 'otpauth';
-import jwt from '@tsndr/cloudflare-worker-jwt'; // <-- A biblioteca que você instalou
+import jwt from '@tsndr/cloudflare-worker-jwt';
 
 type PagesFunction<T = any> = (context: {
     request: Request;
@@ -146,22 +146,42 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         return new Response(JSON.stringify({ error: "E-mail e senha são obrigatórios." }), { status: 400, headers });
       }
       
-      if (!validateEmail(email)) {
+      const cleanEmail = sanitizeInput(email);
+      if (!validateEmail(cleanEmail)) {
         return new Response(JSON.stringify({ error: "E-mail inválido." }), { status: 400, headers });
       }
 
-      const rows = await sql`SELECT * FROM users WHERE email = ${email}`;
+      const rows = await sql`SELECT * FROM users WHERE email = ${cleanEmail}`;
       
       if (rows.length === 0) {
         return new Response(JSON.stringify({ error: "E-mail ou senha incorretos." }), { status: 401, headers });
       }
 
       const user = rows[0];
+
+      // Verificação de bloqueio (Rate Limiting)
+      if (user.lock_until && new Date(user.lock_until) > new Date()) {
+          const waitTime = Math.ceil((new Date(user.lock_until).getTime() - Date.now()) / 60000);
+          return new Response(JSON.stringify({ error: `Conta bloqueada temporariamente. Tente novamente em ${waitTime} minutos.` }), { status: 403, headers });
+      }
+
       const isValidPassword = await verifyPassword(password, user.password);
       
       if (!isValidPassword) {
-        return new Response(JSON.stringify({ error: "E-mail ou senha incorretos." }), { status: 401, headers });
+        const attempts = (user.failed_attempts || 0) + 1;
+        if (attempts >= 5) {
+            const lockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos de bloqueio
+            await sql`UPDATE users SET failed_attempts = ${attempts}, lock_until = ${lockUntil.toISOString()} WHERE id = ${user.id}`;
+            await logAction(sql, user.id, "ACCOUNT_LOCKED", "Múltiplas tentativas de login falhas.", context.request);
+            return new Response(JSON.stringify({ error: "Muitas tentativas falhas. Conta bloqueada por 15 minutos." }), { status: 403, headers });
+        } else {
+            await sql`UPDATE users SET failed_attempts = ${attempts} WHERE id = ${user.id}`;
+            return new Response(JSON.stringify({ error: "E-mail ou senha incorretos." }), { status: 401, headers });
+        }
       }
+
+      // Resetar tentativas falhas após login bem-sucedido
+      await sql`UPDATE users SET failed_attempts = 0, lock_until = NULL WHERE id = ${user.id}`;
       
       // Upgrade password hash se estiver no formato antigo
       if (!user.password.includes(':')) {
@@ -185,6 +205,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
            const delta = totp.validate({ token: twoFactorToken, window: 1 });
 
            if (delta === null) {
+              await logAction(sql, user.id, "LOGIN_2FA_FAILED", "Código 2FA incorreto.", context.request);
               return new Response(JSON.stringify({ error: "Código 2FA incorreto ou expirado." }), { status: 401, headers });
            }
            
@@ -192,6 +213,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
            const tokenJWT = await jwt.sign({ id: user.id, email: user.email, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
            const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`;
            const { password: _, two_factor_secret: __, ...userSafe } = user;
+           await logAction(sql, user.id, "LOGIN_SUCCESS", "Login realizado com sucesso via 2FA.", context.request);
            return new Response(JSON.stringify({ ...userSafe, token: tokenJWT }), { headers: { ...headers, 'Set-Cookie': cookieHeader } });
         } else {
            return new Response(JSON.stringify({ require2fa: true, tempId: user.id }), { headers });
@@ -202,6 +224,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       const tokenJWT = await jwt.sign({ id: user.id, email: user.email, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
       const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`;
       const { password: _, two_factor_secret: __, ...userSafe } = user;
+      await logAction(sql, user.id, "LOGIN_SUCCESS", "Login realizado com sucesso.", context.request);
       return new Response(JSON.stringify({ ...userSafe, token: tokenJWT }), { headers: { ...headers, 'Set-Cookie': cookieHeader } });
     }
 
@@ -211,7 +234,10 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         return new Response(JSON.stringify({ error: "Todos os campos são obrigatórios." }), { status: 400, headers });
       }
       
-      if (!validateEmail(email)) {
+      const cleanEmail = sanitizeInput(email);
+      const cleanName = sanitizeInput(userData.name);
+
+      if (!validateEmail(cleanEmail)) {
         return new Response(JSON.stringify({ error: "E-mail inválido." }), { status: 400, headers });
       }
       
@@ -220,18 +246,18 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         return new Response(JSON.stringify({ error: pwdCheck.message }), { status: 400, headers });
       }
 
-      const check = await sql`SELECT id FROM users WHERE email = ${email}`;
+      const check = await sql`SELECT id FROM users WHERE email = ${cleanEmail}`;
       if (check.length > 0) {
         return new Response(JSON.stringify({ error: "Este e-mail já está cadastrado." }), { status: 409, headers });
       }
 
-      const id = crypto.randomUUID(); // Não aceitar ID do frontend por segurança
+      const id = crypto.randomUUID(); 
       const rawPassword = userData?.password || password;
       const hashedPassword = await hashPassword(rawPassword);
       
       await sql`
         INSERT INTO users (id, name, email, phone, password, avatar) 
-        VALUES (${id}, ${userData?.name || "Novo Usuário"}, ${email}, ${userData?.phone || null}, ${hashedPassword}, ${userData?.avatar || "icon:User:teal"})
+        VALUES (${id}, ${cleanName || "Novo Usuário"}, ${cleanEmail}, ${userData?.phone || null}, ${hashedPassword}, ${userData?.avatar || "icon:User:teal"})
       `;
       
       const defaultCats = [
@@ -246,14 +272,18 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       }
       await sql`INSERT INTO wallets (id, user_id, name, type, color, balance) VALUES (${crypto.randomUUID()}, ${id}, 'Conta Principal', 'checking', '#14b8a6', 0)`;
 
+      await logAction(sql, id, "SIGNUP_SUCCESS", "Novo usuário cadastrado.", context.request);
+
       // 🎫 SUCESSO CADASTRO: Gera o Token (Crachá)
-      const tokenJWT = await jwt.sign({ id: id, email: email, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
+      const tokenJWT = await jwt.sign({ id: id, email: cleanEmail, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
       const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`;
-      return new Response(JSON.stringify({ id, name: userData?.name || "Novo Usuário", email, token: tokenJWT }), { status: 201, headers: { ...headers, 'Set-Cookie': cookieHeader } });
+      return new Response(JSON.stringify({ id, name: cleanName || "Novo Usuário", email: cleanEmail, token: tokenJWT }), { status: 201, headers: { ...headers, 'Set-Cookie': cookieHeader } });
     }
 
     // --- LOGOUT ---
     if (action === "logout") {
+      const authUserId = await getAuthUser(context.request);
+      if (authUserId) await logAction(sql, authUserId, "LOGOUT", "Usuário deslogado.", context.request);
       const cookieHeader = `sos_token=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`;
       return new Response(JSON.stringify({ success: true }), { headers: { ...headers, 'Set-Cookie': cookieHeader } });
     }
@@ -288,6 +318,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
        if (delta === null) return new Response(JSON.stringify({ error: "Código inválido. Verifique o app autenticador." }), { status: 400, headers });
 
        await sql`UPDATE users SET two_factor_enabled = TRUE, two_factor_secret = ${secret} WHERE id = ${authUserId}`;
+       await logAction(sql, authUserId, "2FA_ENABLED", "Autenticação de dois fatores ativada.", context.request);
        return new Response(JSON.stringify({ success: true }), { headers });
     }
 
@@ -303,6 +334,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
        if (!isValid) return new Response(JSON.stringify({ error: "Senha incorreta." }), { status: 401, headers });
 
        await sql`UPDATE users SET two_factor_enabled = FALSE, two_factor_secret = NULL WHERE id = ${authUserId}`;
+       await logAction(sql, authUserId, "2FA_DISABLED", "Autenticação de dois fatores desativada.", context.request);
        return new Response(JSON.stringify({ success: true }), { headers });
     }
 
@@ -310,7 +342,8 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
     if (action === "forgot_password") {
         if (!context.env.RESEND_API_KEY) return new Response(JSON.stringify({ error: "Erro de configuração: RESEND_API_KEY não encontrada." }), { status: 500, headers });
 
-        const users = await sql`SELECT id, name FROM users WHERE email = ${email}`;
+        const cleanEmail = sanitizeInput(email);
+        const users = await sql`SELECT id, name FROM users WHERE email = ${cleanEmail}`;
         if (users.length === 0) return new Response(JSON.stringify({ error: "E-mail não encontrado em nossa base." }), { status: 404, headers });
 
         const user = users[0];
@@ -328,7 +361,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
             const resend = new Resend(context.env.RESEND_API_KEY);
             const { error: resendError } = await resend.emails.send({
                 from: 'SOS Controle <no-reply@sostec.top>',
-                to: [email],
+                to: [cleanEmail],
                 subject: 'Recuperar Senha - SOS Controle',
                 html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; padding: 20px; color: #333;">
     <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
@@ -378,6 +411,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
             });
 
             if (resendError) throw resendError;
+            await logAction(sql, user.id, "PASSWORD_RESET_REQUESTED", "E-mail de recuperação enviado.", context.request);
             return new Response(JSON.stringify({ success: true, message: "Código e link enviados com sucesso!" }), { headers });
         } catch (err: any) {
             return new Response(JSON.stringify({ error: "Falha técnica ao processar e-mail." }), { status: 500, headers });
@@ -394,6 +428,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         await sql`UPDATE users SET password = ${hashedNewPassword} WHERE id = ${resetRecord[0].user_id}`;
         await sql`DELETE FROM password_resets WHERE id = ${resetRecord[0].id}`;
 
+        await logAction(sql, resetRecord[0].user_id, "PASSWORD_RESET_SUCCESS", "Senha redefinida com sucesso via token.", context.request);
         return new Response(JSON.stringify({ success: true }), { headers });
     }
 
@@ -402,7 +437,11 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       const authUserId = await getAuthUser(context.request);
       if (!authUserId) return new Response(JSON.stringify({ error: "Não autorizado." }), { status: 401, headers });
 
-      await sql`UPDATE users SET name=${userData.name}, phone=${userData.phone}, avatar=${userData.avatar} WHERE id=${authUserId}`;
+      const cleanName = sanitizeInput(userData.name);
+      const cleanPhone = sanitizeInput(userData.phone);
+
+      await sql`UPDATE users SET name=${cleanName}, phone=${cleanPhone}, avatar=${userData.avatar} WHERE id=${authUserId}`;
+      await logAction(sql, authUserId, "PROFILE_UPDATED", "Dados do perfil atualizados.", context.request);
       return new Response(JSON.stringify({ success: true }), { headers });
     }
 
@@ -427,6 +466,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       
       const hashedNewPassword = await hashPassword(newPassword);
       await sql`UPDATE users SET password = ${hashedNewPassword} WHERE id = ${authUserId}`;
+      await logAction(sql, authUserId, "PASSWORD_UPDATED", "Senha alterada pelo usuário.", context.request);
       return new Response(JSON.stringify({ success: true }), { headers });
     }
 

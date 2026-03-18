@@ -16,6 +16,7 @@ interface FinanceState {
   isLoading: boolean;
   user: UserProfile & { id?: string };
   
+  checkSession: () => Promise<void>;
   login: (email: string, password: string, twoFactorToken?: string) => Promise<{ success: boolean; message?: string; require2fa?: boolean; tempId?: string }>;
   signup: (userData: any) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
@@ -99,7 +100,7 @@ const api = async (endpoint: string, method: string, body?: any) => {
   try {
     const url = `/api/${endpoint}`;
     
-    // Pega o token salvo no navegador
+    // Pega o token salvo no navegador (mantido por compatibilidade)
     const token = localStorage.getItem('sos_token');
     const headers: any = { 'Content-Type': 'application/json' };
     
@@ -110,6 +111,7 @@ const api = async (endpoint: string, method: string, body?: any) => {
     const res = await fetch(url, {
       method,
       headers,
+      credentials: 'same-origin',
       body: body ? JSON.stringify(body) : undefined
     });
     
@@ -283,7 +285,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
     }),
 
     isAuthenticated: false,
-    isLoading: false,
+    isLoading: true, // Começa carregando para o checkSession
     user: { name: "", email: "", avatar: "" },
     transactions: [],
     categories: [],
@@ -495,6 +497,21 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
     editingBudget: null,
     setEditingBudget: (b) => set({ editingBudget: b }),
 
+    checkSession: async () => {
+        try {
+            const res = await api('auth', 'POST', { action: 'check_session' });
+            if (res.id) {
+                const userData = { ...res, twoFactorEnabled: res.two_factor_enabled };
+                set({ isAuthenticated: true, user: userData, is2FAEnabled: userData.twoFactorEnabled });
+                await get().fetchUserData();
+            }
+        } catch (e) {
+            console.log("Nenhuma sessão ativa.");
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
     // 🎫 SALVA O CRACHÁ NO LOGIN
     login: async (email, password, twoFactorToken) => {
       set({ isLoading: true });
@@ -505,8 +522,10 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
             return { success: false, require2fa: true, tempId: res.tempId };
         }
         
-        if (res.token) localStorage.setItem('sos_token', res.token); // Salva o token!
-        
+        if (res.token) {
+            localStorage.setItem('sos_token', res.token);
+        }
+
         const userData = { ...res, twoFactorEnabled: res.two_factor_enabled };
         set({ isAuthenticated: true, user: userData, is2FAEnabled: userData.twoFactorEnabled });
         await get().fetchUserData();
@@ -526,7 +545,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
         const userToCreate = { ...userData, id };
         const res = await api('auth', 'POST', { action: 'signup', email: userData.email, userData: userToCreate });
         
-        if (res.token) localStorage.setItem('sos_token', res.token); // Salva o token!
+        if (res.token) {
+            localStorage.setItem('sos_token', res.token);
+        }
 
         set({ isAuthenticated: true, user: res, is2FAEnabled: false });
         await get().fetchUserData();
@@ -588,17 +609,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
       const userId = get().user.id;
       if (!userId) return;
       try {
-        const token = localStorage.getItem('sos_token');
-        const res = await fetch(`/api/data?userId=${userId}`, {
-            headers: {
-                'Authorization': token ? `Bearer ${token}` : ''
-            }
-        });
+        const data = await api(`data?userId=${userId}`, 'GET');
         
-        if (res.ok) {
-          const data = await res.json();
-          
-          // 1. Traduz as Exceções
+        // 1. Traduz as Exceções
           const fetchedExceptions = (data.recurrenceExceptions || []).map((ex: any) => ({
               ...ex,
               transactionId: ex.transaction_id || ex.transactionId,
@@ -645,7 +658,6 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
                 userId: b.user_id || b.userId 
             }))
           });
-        }
       } catch (e) {
         console.error("Erro ao carregar dados", e);
       }
@@ -809,6 +821,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
     // 🎫 APAGA O CRACHÁ NO LOGOUT
     logout: () => {
         localStorage.removeItem('sos_token');
+        api('auth', 'POST', { action: 'logout' });
         set({ isAuthenticated: false, user: { name: "", email: "", avatar: "" }, transactions: [], categories: [], rules: [], wallets: [], budgets: [], view: 'auth' });
     }
   };

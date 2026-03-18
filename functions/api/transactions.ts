@@ -26,12 +26,27 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
     // ==========================================
     // 🔒 1. O GUARDA DA PORTA: VERIFICA O CRACHÁ
     // ==========================================
-    const authHeader = context.request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-       return new Response(JSON.stringify({ error: "Acesso Negado. O Token não foi fornecido." }), { status: 401, headers });
+    const cookieHeader = context.request.headers.get("Cookie");
+    let token = null;
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.split('=').map(c => c.trim());
+        acc[key] = value;
+        return acc;
+      }, {} as Record<string, string>);
+      token = cookies['sos_token'];
     }
 
-    const token = authHeader.split(" ")[1];
+    if (!token) {
+      const authHeader = context.request.headers.get("Authorization");
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+      }
+    }
+
+    if (!token) {
+       return new Response(JSON.stringify({ error: "Acesso Negado. O Token não foi fornecido." }), { status: 401, headers });
+    }
     const secret = context.env.JWT_SECRET || 'minha_chave_super_secreta_123';
 
     const isValid = await jwt.verify(token, secret);
@@ -47,7 +62,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
     const { action, transaction, id, userId, scope, exceptionDate, masterId } = body; 
 
     // 🔒 3. VALIDAÇÃO ANTI-HACKER (IDOR)
-    if (payload.id !== userId) {
+    if ((payload as any).id !== userId) {
         return new Response(JSON.stringify({ error: "Acesso não autorizado a estes dados." }), { status: 403, headers });
     }
 

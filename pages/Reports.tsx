@@ -172,7 +172,8 @@ export const Reports: React.FC = () => {
         type: (item.Tipo === 'Receita' ? 'income' : 'expense') as 'income' | 'expense',
         categoryId: categories.find(c => c.name === item.Categoria)?.id || categories[0]?.id || '1',
         isPaid: item.Status === 'Finalizado',
-        notes: item.Notas || ''
+        notes: item.Notas || '',
+        recurrence: 'none' as any
       }));
 
       bulkAddTransactions(newTransactions);
@@ -231,7 +232,7 @@ export const Reports: React.FC = () => {
                           ))}
                         </Pie>
                         <Tooltip 
-                          formatter={(value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                          formatter={(value: any) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                           contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px 16px' }}
                           itemStyle={{ color: '#1e293b', fontWeight: 'bold' }}
                         />
@@ -292,7 +293,7 @@ export const Reports: React.FC = () => {
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
                   <Tooltip 
                     cursor={{fill: '#f8fafc'}} 
-                    formatter={(value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    formatter={(value: any) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                   />
                   <Legend iconType="circle" verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: '20px' }} />
@@ -343,7 +344,7 @@ export const Reports: React.FC = () => {
                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
                     <Tooltip 
                       labelFormatter={(label) => `Dia ${label}`}
-                      formatter={(value: number) => [value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), 'Saldo Acumulado']}
+                      formatter={(value: any) => [value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), 'Saldo Acumulado']}
                       contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                     />
                     <Area 

@@ -34,12 +34,27 @@ export const onRequestGet: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: str
     // ==========================================
     // 🔒 1. O GUARDA DA PORTA: VERIFICA O CRACHÁ
     // ==========================================
-    const authHeader = context.request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-       return new Response(JSON.stringify({ error: "Acesso Negado. O Token não foi fornecido." }), { status: 401, headers });
+    const cookieHeader = context.request.headers.get("Cookie");
+    let token = null;
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.split('=').map(c => c.trim());
+        acc[key] = value;
+        return acc;
+      }, {} as Record<string, string>);
+      token = cookies['sos_token'];
     }
 
-    const token = authHeader.split(" ")[1];
+    if (!token) {
+      const authHeader = context.request.headers.get("Authorization");
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+      }
+    }
+
+    if (!token) {
+       return new Response(JSON.stringify({ error: "Acesso Negado. O Token não foi fornecido." }), { status: 401, headers });
+    }
     const secret = context.env.JWT_SECRET || 'minha_chave_super_secreta_123'; // Lembre-se de configurar isto no painel do Cloudflare!
 
     // 🔒 2. VERIFICA SE O CRACHÁ É FALSO OU ESTÁ EXPIRADO
@@ -50,7 +65,7 @@ export const onRequestGet: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: str
 
     // 🔒 3. VERIFICA SE O CRACHÁ PERTENCE À PESSOA CERTA (Evita ataques IDOR)
     const { payload } = jwt.decode(token);
-    if (payload.id !== userId) {
+    if ((payload as any).id !== userId) {
        return new Response(JSON.stringify({ error: "Acesso não autorizado a estes dados." }), { status: 403, headers });
     }
     // ==========================================

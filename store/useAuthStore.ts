@@ -11,7 +11,7 @@ interface AuthState {
 
   login: (email: string, password: string, twoFactorToken?: string) => Promise<{ success: boolean; message?: string; require2fa?: boolean; tempId?: string }>;
   signup: (userData: any) => Promise<{ success: boolean; message?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   
   updatePassword: (current: string, next: string) => Promise<{ success: boolean; message: string }>;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
@@ -37,6 +37,7 @@ const api = async (endpoint: string, method: string, body?: any) => {
     const res = await fetch(url, {
       method,
       headers,
+      credentials: 'same-origin',
       body: body ? JSON.stringify(body) : undefined
     });
     
@@ -68,8 +69,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           return { success: false, require2fa: true, tempId: res.tempId };
       }
       
-      if (res.token) localStorage.setItem('sos_token', res.token);
-      
       const userData = { ...res, twoFactorEnabled: res.two_factor_enabled };
       set({ isAuthenticated: true, user: userData, is2FAEnabled: userData.twoFactorEnabled });
       
@@ -91,8 +90,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const id = crypto.randomUUID(); 
       const userToCreate = { ...userData, id };
       const res = await api('auth', 'POST', { action: 'signup', email: userData.email, userData: userToCreate });
-      
-      if (res.token) localStorage.setItem('sos_token', res.token);
 
       set({ isAuthenticated: true, user: res, is2FAEnabled: false });
       
@@ -107,8 +104,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  logout: () => {
-      localStorage.removeItem('sos_token');
+  logout: async () => {
+      try { await api('auth', 'POST', { action: 'logout' }); } catch (e) {}
+      localStorage.removeItem('sos_token'); // Keep for backward compatibility cleanup
       set({ isAuthenticated: false, user: { name: "", email: "", avatar: "" } });
       
       // Quando o utilizador sai, desliga as luzes e limpa os relatórios financeiros

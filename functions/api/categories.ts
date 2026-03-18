@@ -23,12 +23,27 @@ export const onRequestOptions: PagesFunction = async () => {
 
 export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: string }> = async (context) => {
   try {
-    const authHeader = context.request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-       return new Response(JSON.stringify({ error: "Acesso Negado." }), { status: 401, headers });
+    const cookieHeader = context.request.headers.get("Cookie");
+    let token = null;
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.split('=').map(c => c.trim());
+        acc[key] = value;
+        return acc;
+      }, {} as Record<string, string>);
+      token = cookies['sos_token'];
     }
 
-    const token = authHeader.split(" ")[1];
+    if (!token) {
+      const authHeader = context.request.headers.get("Authorization");
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+      }
+    }
+
+    if (!token) {
+       return new Response(JSON.stringify({ error: "Acesso Negado." }), { status: 401, headers });
+    }
     const secret = context.env.JWT_SECRET || 'minha_chave_super_secreta_123';
     
     if (!(await jwt.verify(token, secret))) {
@@ -40,7 +55,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
     const body: any = await context.request.json();
     const { action, category, id, userId } = body;
 
-    if (payload.id !== userId) {
+    if ((payload as any).id !== userId) {
         return new Response(JSON.stringify({ error: "Acesso não autorizado." }), { status: 403, headers });
     }
 

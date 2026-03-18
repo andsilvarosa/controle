@@ -75,14 +75,15 @@ export const Auth: React.FC = () => {
     console.log("handleLoginSubmit chamado. require2FA:", require2FA);
     
     if (require2FA) {
-        console.log("Tentando validar código 2FA:", twoFactorCode);
+        console.log("Auth.tsx: Enviando código 2FA para validação:", twoFactorCode);
         const result = await login(formData.email, formData.password, twoFactorCode);
+        console.log("Auth.tsx: Resultado da validação 2FA:", result);
         if (result.success) {
-            console.log("Login 2FA bem-sucedido!");
+            console.log("Auth.tsx: Login 2FA bem-sucedido!");
             setRequire2FA(false);
             setTwoFactorCode('');
         } else {
-            console.error("Erro na validação do 2FA:", result.message);
+            console.error("Auth.tsx: Erro na validação do 2FA:", result.message);
             setError(result.message || 'Código inválido.');
         }
         return;

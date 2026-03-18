@@ -52,7 +52,7 @@ const PageTransition: React.FC<PageTransitionProps> = ({ children, viewKey }) =>
 );
 
 const App: React.FC = () => {
-  const { view, isAuthenticated, theme, checkSession, isLoading } = useFinanceStore();
+  const { view, isAuthenticated, theme, checkSession, isInitialLoading } = useFinanceStore();
 
   useEffect(() => {
     checkSession();
@@ -66,7 +66,7 @@ const App: React.FC = () => {
     }
   }, [theme]);
 
-  if (isLoading) {
+  if (isInitialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">

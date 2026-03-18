@@ -14,6 +14,7 @@ interface FinanceState {
 
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialLoading: boolean;
   user: UserProfile & { id?: string };
   
   checkSession: () => Promise<void>;
@@ -285,7 +286,8 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
     }),
 
     isAuthenticated: false,
-    isLoading: true, // Começa carregando para o checkSession
+    isInitialLoading: true,
+    isLoading: false,
     user: { name: "", email: "", avatar: "" },
     transactions: [],
     categories: [],
@@ -508,20 +510,25 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
         } catch (e) {
             console.log("Nenhuma sessão ativa.");
         } finally {
-            set({ isLoading: false });
+            set({ isInitialLoading: false });
         }
     },
 
     // 🎫 SALVA O CRACHÁ NO LOGIN
     login: async (email, password, twoFactorToken) => {
       set({ isLoading: true });
-      console.log("Iniciando processo de login...", { email, has2FA: !!twoFactorToken });
+      console.log("Store: Iniciando processo de login...", { email, hasToken: !!twoFactorToken, tokenLength: twoFactorToken?.length });
       try {
         const res = await api('auth', 'POST', { action: 'login', email, password, twoFactorToken });
-        console.log("Resposta do login recebida:", res.require2fa ? "Requer 2FA" : "Sucesso");
+        console.log("Store: Resposta da API recebida:", { 
+            require2fa: res.require2fa, 
+            hasToken: !!res.token,
+            error: res.error
+        });
 
         if (res.require2fa) {
             set({ isLoading: false });
+            console.log("Store: 2FA requerido, interrompendo fluxo e aguardando código.");
             return { success: false, require2fa: true, tempId: res.tempId };
         }
         

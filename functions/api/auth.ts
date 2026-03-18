@@ -73,11 +73,15 @@ async function verifyPassword(password: string, storedHash: string): Promise<boo
   }
 }
 
-export const onRequestOptions: PagesFunction = async () => {
+export const onRequestOptions: PagesFunction = async (context) => {
+  const origin = context.request.headers.get("Origin");
+  const headers = getSecurityHeaders(origin);
   return new Response(null, { status: 204, headers });
 };
 
 export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY: string, JWT_SECRET: string }> = async (context) => {
+  const origin = context.request.headers.get("Origin");
+  const headers = getSecurityHeaders(origin);
   try {
     const sql = getDb(context.env.DATABASE_URL);
     const body: any = await context.request.json();
@@ -186,7 +190,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
            
            // 🎫 SUCESSO 2FA: Gera o Token (Crachá)
            const tokenJWT = await jwt.sign({ id: user.id, email: user.email, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
-           const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`;
+           const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`;
            const { password: _, two_factor_secret: __, ...userSafe } = user;
            return new Response(JSON.stringify({ ...userSafe, token: tokenJWT }), { headers: { ...headers, 'Set-Cookie': cookieHeader } });
         } else {
@@ -196,7 +200,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
 
       // 🎫 SUCESSO LOGIN NORMAL: Gera o Token (Crachá)
       const tokenJWT = await jwt.sign({ id: user.id, email: user.email, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
-      const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`;
+      const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`;
       const { password: _, two_factor_secret: __, ...userSafe } = user;
       return new Response(JSON.stringify({ ...userSafe, token: tokenJWT }), { headers: { ...headers, 'Set-Cookie': cookieHeader } });
     }
@@ -244,13 +248,13 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
 
       // 🎫 SUCESSO CADASTRO: Gera o Token (Crachá)
       const tokenJWT = await jwt.sign({ id: id, email: email, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
-      const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`;
+      const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`;
       return new Response(JSON.stringify({ id, name: userData?.name || "Novo Usuário", email, token: tokenJWT }), { status: 201, headers: { ...headers, 'Set-Cookie': cookieHeader } });
     }
 
     // --- LOGOUT ---
     if (action === "logout") {
-      const cookieHeader = `sos_token=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`;
+      const cookieHeader = `sos_token=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`;
       return new Response(JSON.stringify({ success: true }), { headers: { ...headers, 'Set-Cookie': cookieHeader } });
     }
 

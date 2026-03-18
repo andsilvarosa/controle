@@ -515,8 +515,11 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
     // 🎫 SALVA O CRACHÁ NO LOGIN
     login: async (email, password, twoFactorToken) => {
       set({ isLoading: true });
+      console.log("Iniciando processo de login...", { email, has2FA: !!twoFactorToken });
       try {
         const res = await api('auth', 'POST', { action: 'login', email, password, twoFactorToken });
+        console.log("Resposta do login recebida:", res.require2fa ? "Requer 2FA" : "Sucesso");
+
         if (res.require2fa) {
             set({ isLoading: false });
             return { success: false, require2fa: true, tempId: res.tempId };
@@ -524,16 +527,22 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
         
         if (res.token) {
             localStorage.setItem('sos_token', res.token);
+            console.log("Token salvo no localStorage");
         }
 
         const userData = { ...res, twoFactorEnabled: res.two_factor_enabled };
         set({ isAuthenticated: true, user: userData, is2FAEnabled: userData.twoFactorEnabled });
+        
+        console.log("Buscando dados do usuário...");
         await get().fetchUserData();
+        
         set({ isLoading: false, view: 'dashboard' });
+        console.log("Login concluído com sucesso.");
         return { success: true };
       } catch (e: any) {
+        console.error("Erro durante o login:", e);
         set({ isLoading: false });
-        return { success: false, message: e.message || "Erro." };
+        return { success: false, message: e.message || "Erro ao realizar login." };
       }
     },
 
@@ -607,9 +616,15 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
    // 🎫 ENVIA O CRACHÁ AO BUSCAR DADOS
     fetchUserData: async () => {
       const userId = get().user.id;
-      if (!userId) return;
+      if (!userId) {
+          console.warn("fetchUserData: userId não encontrado.");
+          return;
+      }
+      
+      console.log(`Buscando dados para o usuário ${userId}...`);
       try {
         const data = await api(`data?userId=${userId}`, 'GET');
+        console.log("Dados recebidos da API:", Object.keys(data));
         
         // 1. Traduz as Exceções
           const fetchedExceptions = (data.recurrenceExceptions || []).map((ex: any) => ({

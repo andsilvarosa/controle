@@ -13,11 +13,15 @@ type PagesFunction<T = any> = (context: {
 
 const headers = getSecurityHeaders();
 
-export const onRequestOptions: PagesFunction = async () => {
+export const onRequestOptions: PagesFunction = async (context) => {
+  const origin = context.request.headers.get("Origin");
+  const headers = getSecurityHeaders(origin);
   return new Response(null, { status: 204, headers });
 };
 
 export const onRequestGet: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: string }> = async (context) => {
+  const origin = context.request.headers.get("Origin");
+  const headers = getSecurityHeaders(origin);
   try {
     const url = new URL(context.request.url);
     const userId = url.searchParams.get("userId");

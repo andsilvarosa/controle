@@ -169,6 +169,30 @@ export const initSchema = async (sql: any) => {
     try {
        await sql(`CREATE UNIQUE INDEX IF NOT EXISTS idx_recurrence_exceptions_unique ON recurrence_exceptions (transaction_id, excluded_date)`);
     } catch (e) { /* Ignora se já existir */ }
+
+    // --- SESSIONS ---
+    await sql(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+        user_agent TEXT,
+        ip_address TEXT,
+        last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // --- KNOWN DEVICES ---
+    await sql(`
+      CREATE TABLE IF NOT EXISTS known_devices (
+        id TEXT PRIMARY KEY,
+        user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+        user_agent TEXT,
+        ip_address TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, user_agent, ip_address)
+      )
+    `);
     
   } catch (e: any) {
     console.error("[Schema Init Error]", e.message);

@@ -118,10 +118,68 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
             const isValid = await jwt.verify(token, JWT_SECRET);
             if (!isValid) return null;
             const { payload } = jwt.decode(token);
-            return (payload as any).id;
+            const userId = (payload as any).id;
+            const sessionId = (payload as any).sid;
+
+            if (sessionId) {
+                const sessionCheck = await sql("SELECT id FROM sessions WHERE id = $1 AND user_id = $2", [sessionId, userId]);
+                if (sessionCheck.length === 0) return null;
+                // Atualizar last_active de forma assíncrona (não bloqueante)
+                context.waitUntil(sql("UPDATE sessions SET last_active = CURRENT_TIMESTAMP WHERE id = $1", [sessionId]));
+            }
+
+            return userId;
         } catch (e) {
             return null;
         }
+    };
+
+    const handleNewLogin = async (user: any, req: Request) => {
+        const ip = req.headers.get("CF-Connecting-IP") || "0.0.0.0";
+        const ua = req.headers.get("User-Agent") || "Unknown";
+        const sessionId = crypto.randomUUID();
+
+        // Registrar sessão
+        await sql("INSERT INTO sessions (id, user_id, user_agent, ip_address) VALUES ($1, $2, $3, $4)", [sessionId, user.id, ua, ip]);
+
+        // Verificar dispositivo conhecido
+        const known = await sql("SELECT id FROM known_devices WHERE user_id = $1 AND user_agent = $2 AND ip_address = $3", [user.id, ua, ip]);
+        
+        if (known.length === 0) {
+            // Novo dispositivo!
+            await sql("INSERT INTO known_devices (id, user_id, user_agent, ip_address) VALUES ($1, $2, $3, $4)", [crypto.randomUUID(), user.id, ua, ip]);
+            
+            // Enviar e-mail de alerta
+            if (context.env.RESEND_API_KEY) {
+                const resend = new Resend(context.env.RESEND_API_KEY);
+                try {
+                    await resend.emails.send({
+                        from: 'SOS Controle <seguranca@soscontrole.com>',
+                        to: user.email,
+                        subject: '⚠️ Alerta de Segurança: Novo Acesso Detectado',
+                        html: `
+                            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                                <h2 style="color: #d32f2f;">Novo Acesso Detectado</h2>
+                                <p>Olá, <strong>${user.name}</strong>.</p>
+                                <p>Sua conta foi acessada a partir de um novo dispositivo ou local.</p>
+                                <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                                    <p style="margin: 5px 0;"><strong>Data:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+                                    <p style="margin: 5px 0;"><strong>IP:</strong> ${ip}</p>
+                                    <p style="margin: 5px 0;"><strong>Dispositivo:</strong> ${ua}</p>
+                                </div>
+                                <p>Se foi você, pode ignorar este e-mail. Caso contrário, recomendamos que você altere sua senha imediatamente e encerre as sessões ativas no painel de segurança.</p>
+                                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                                <p style="font-size: 12px; color: #888;">Este é um e-mail automático de segurança do SOS Controle.</p>
+                            </div>
+                        `
+                    });
+                } catch (e) {
+                    console.error("Erro ao enviar e-mail de alerta de login:", e);
+                }
+            }
+        }
+
+        return sessionId;
     };
 
     // --- CHECK SESSION ---
@@ -210,7 +268,8 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
            }
            
            // 🎫 SUCESSO 2FA: Gera o Token (Crachá)
-           const tokenJWT = await jwt.sign({ id: user.id, email: user.email, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
+           const sessionId = await handleNewLogin(user, context.request);
+           const tokenJWT = await jwt.sign({ id: user.id, email: user.email, sid: sessionId, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
            const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`;
            const { password: _, two_factor_secret: __, ...userSafe } = user;
            await logAction(sql, user.id, "LOGIN_SUCCESS", "Login realizado com sucesso via 2FA.", context.request);
@@ -221,7 +280,8 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       }
 
       // 🎫 SUCESSO LOGIN NORMAL: Gera o Token (Crachá)
-      const tokenJWT = await jwt.sign({ id: user.id, email: user.email, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
+      const sessionId = await handleNewLogin(user, context.request);
+      const tokenJWT = await jwt.sign({ id: user.id, email: user.email, sid: sessionId, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
       const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`;
       const { password: _, two_factor_secret: __, ...userSafe } = user;
       await logAction(sql, user.id, "LOGIN_SUCCESS", "Login realizado com sucesso.", context.request);

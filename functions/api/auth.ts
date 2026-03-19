@@ -1,4 +1,4 @@
-import { getDb } from "../../lib/db";
+import { getDb, initSchema } from "../../lib/db";
 import { getSecurityHeaders, validatePassword, validateEmail, sanitizeInput, logAction, checkRateLimit } from "../../lib/security";
 import { Resend } from 'resend';
 import * as OTPAuth from 'otpauth';
@@ -43,6 +43,10 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
 
   try {
     const sql = getDb(context.env.DATABASE_URL);
+    
+    // 🔄 GARANTIR ESQUEMA ATUALIZADO (Cria tabelas se não existirem)
+    await initSchema(sql);
+
     const body: any = await context.request.json();
     const { action, email, password, userData, currentPassword, newPassword, userId, token, twoFactorToken, secret } = body;
 

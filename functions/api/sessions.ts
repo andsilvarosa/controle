@@ -1,6 +1,5 @@
 import { getDb } from "../../lib/db";
-import { getSecurityHeaders, logAction } from "../../lib/security";
-import jwt from '@tsndr/cloudflare-worker-jwt';
+import { getSecurityHeaders, logAction, validateSession } from "../../lib/security";
 
 type PagesFunction<T = any> = (context: {
     request: Request;
@@ -23,40 +22,21 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: st
   const origin = context.request.headers.get("Origin");
   const headers = getSecurityHeaders(origin);
   try {
-    const cookieHeader = context.request.headers.get("Cookie");
-    let token = null;
-    if (cookieHeader) {
-      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
-        const [key, value] = cookie.split('=').map(c => c.trim());
-        acc[key] = value;
-        return acc;
-      }, {} as Record<string, string>);
-      token = cookies['sos_token'];
-    }
-
-    if (!token) {
-      const authHeader = context.request.headers.get("Authorization");
-      if (authHeader && authHeader.startsWith("Bearer ")) {
-        token = authHeader.split(" ")[1];
-      }
-    }
-
-    if (!token) {
-       return new Response(JSON.stringify({ error: "Acesso Negado." }), { status: 401, headers });
-    }
-    const secret = context.env.JWT_SECRET;
-    if (!secret) {
-        return new Response(JSON.stringify({ error: "Erro de configuração: JWT_SECRET não definida." }), { status: 500, headers });
-    }
-    
-    if (!(await jwt.verify(token, secret))) {
-       return new Response(JSON.stringify({ error: "Token inválido." }), { status: 401, headers });
-    }
-    const { payload } = jwt.decode(token);
-    const authUserId = (payload as any).id;
-    const currentSessionId = (payload as any).sid;
-
     const sql = getDb(context.env.DATABASE_URL);
+    
+    // ==========================================
+    // 🔒 1. VALIDAÇÃO DE SESSÃO CENTRALIZADA
+    // ==========================================
+    const session = await validateSession(context.request, context.env.JWT_SECRET, sql, context.waitUntil);
+    
+    if (!session.isValid) {
+      return new Response(JSON.stringify({ error: session.error }), { status: session.status, headers });
+    }
+
+    const authUserId = session.userId!;
+    const currentSessionId = session.sessionId!;
+    // ==========================================
+
     const body: any = await context.request.json();
     const { action, sessionId } = body;
 

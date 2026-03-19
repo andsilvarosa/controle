@@ -1,12 +1,28 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShieldCheck, KeyRound, Eye, EyeOff, CheckCircle2, AlertCircle, ShieldAlert, Construction, Loader2, QrCode, Smartphone, Unlock, Lock } from 'lucide-react';
+import { X, ShieldCheck, KeyRound, Eye, EyeOff, CheckCircle2, AlertCircle, ShieldAlert, Construction, Loader2, QrCode, Smartphone, Unlock, Lock, Monitor, Laptop, Globe, LogOut, Trash2 } from 'lucide-react';
 import { useFinanceStore } from '../../store/useFinanceStore';
+import { useEffect } from 'react';
 import QRCode from 'qrcode';
 
 export const SecurityModal: React.FC = () => {
-  const { activeModal, setActiveModal, updatePassword, generate2FA, enable2FA, disable2FA, is2FAEnabled } = useFinanceStore();
+  const { 
+    activeModal, 
+    setActiveModal, 
+    updatePassword, 
+    generate2FA, 
+    enable2FA, 
+    disable2FA, 
+    is2FAEnabled,
+    activeSessions,
+    isSessionLoading,
+    fetchActiveSessions,
+    revokeSession,
+    revokeOtherSessions,
+    currentSessionId
+  } = useFinanceStore();
+
   const [showPass, setShowPass] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -24,7 +40,35 @@ export const SecurityModal: React.FC = () => {
 
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
+  useEffect(() => {
+    if (activeModal === 'security') {
+      fetchActiveSessions();
+    }
+  }, [activeModal, fetchActiveSessions]);
+
   if (activeModal !== 'security') return null;
+
+  const parseUserAgent = (ua: string) => {
+    const lower = ua.toLowerCase();
+    if (lower.includes('iphone') || lower.includes('android') || lower.includes('mobile')) {
+      return { icon: <Smartphone size={18} />, name: 'Dispositivo Móvel' };
+    }
+    if (lower.includes('macintosh') || lower.includes('windows') || lower.includes('linux')) {
+      return { icon: <Monitor size={18} />, name: 'Computador' };
+    }
+    return { icon: <Globe size={18} />, name: 'Dispositivo Desconhecido' };
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
 
   const handleSubmitPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -230,6 +274,92 @@ export const SecurityModal: React.FC = () => {
                       </button>
                   </div>
               )}
+            </div>
+
+            {/* Active Sessions Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <Smartphone size={14} />
+                  Sessões Ativas
+                </h3>
+                {activeSessions.length > 1 && (
+                  <button 
+                    onClick={() => {
+                      if(confirm("Deseja encerrar todas as outras sessões?")) {
+                        revokeOtherSessions();
+                      }
+                    }}
+                    className="text-[10px] font-bold text-red-500 hover:text-red-600 uppercase tracking-wider flex items-center gap-1 transition-colors"
+                  >
+                    <Trash2 size={12} />
+                    Encerrar Outras
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {isSessionLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="animate-spin text-slate-300" size={24} />
+                  </div>
+                ) : activeSessions.length === 0 ? (
+                  <div className="text-center py-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <p className="text-xs text-slate-400 font-medium">Nenhuma sessão encontrada.</p>
+                  </div>
+                ) : (
+                  activeSessions.map((session) => {
+                    const { icon, name } = parseUserAgent(session.user_agent);
+                    const isCurrent = session.id === currentSessionId;
+
+                    return (
+                      <div 
+                        key={session.id}
+                        className={`p-4 rounded-2xl border transition-all ${
+                          isCurrent 
+                          ? 'bg-teal-50/50 border-teal-100' 
+                          : 'bg-white border-slate-100 hover:border-slate-200 shadow-sm'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2.5 rounded-xl ${isCurrent ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                              {icon}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm font-bold text-slate-800">{name}</p>
+                                {isCurrent && (
+                                  <span className="text-[9px] font-black bg-teal-500 text-white px-1.5 py-0.5 rounded-full uppercase tracking-tighter">
+                                    Atual
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-slate-400 font-medium">
+                                {session.ip_address} • {formatDate(session.last_active)}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {!isCurrent && (
+                            <button 
+                              onClick={() => {
+                                if(confirm("Deseja encerrar esta sessão remotamente?")) {
+                                  revokeSession(session.id);
+                                }
+                              }}
+                              className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                              title="Encerrar Sessão"
+                            >
+                              <LogOut size={18} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
 
             {/* Password Change Form */}

@@ -1,3 +1,4 @@
+import jwt from '@tsndr/cloudflare-worker-jwt';
 
 /**
  * Utilitários de segurança centralizados para a aplicação.
@@ -24,6 +25,68 @@ export const getSecurityHeaders = (origin: string | null = null) => {
   }
 
   return headers;
+};
+
+interface SessionValidationResult {
+    isValid: boolean;
+    userId?: string;
+    sessionId?: string;
+    error?: string;
+    status?: number;
+}
+
+/**
+ * Valida o token JWT e a sessão ativa no banco de dados.
+ */
+export const validateSession = async (request: Request, secret: string, sql: any, waitUntil?: any): Promise<SessionValidationResult> => {
+    const cookieHeader = request.headers.get("Cookie");
+    let token = null;
+    if (cookieHeader) {
+        const cookies = (cookieHeader || '').split(';').reduce((acc, cookie) => {
+            const parts = cookie.split('=');
+            if (parts.length >= 2) {
+                const key = parts[0].trim();
+                const value = parts.slice(1).join('=').trim();
+                acc[key] = value;
+            }
+            return acc;
+        }, {} as Record<string, string>);
+        token = cookies['sos_token'];
+    }
+
+    if (!token) {
+        const authHeader = request.headers.get("Authorization");
+        if (authHeader && authHeader.startsWith("Bearer ")) {
+            token = authHeader.split(" ")[1];
+        }
+    }
+
+    if (!token) return { isValid: false, error: "Token não fornecido", status: 401 };
+
+    try {
+        const isValid = await jwt.verify(token, secret);
+        if (!isValid) return { isValid: false, error: "Token inválido ou expirado", status: 401 };
+
+        const { payload } = jwt.decode(token);
+        const userId = (payload as any).id;
+        const sessionId = (payload as any).sid;
+
+        if (sessionId) {
+            const sessionCheck = await sql("SELECT id FROM sessions WHERE id = $1 AND user_id = $2", [sessionId, userId]);
+            if (sessionCheck.length === 0) return { isValid: false, error: "Sessão revogada", status: 401 };
+            
+            // Atualizar last_active de forma assíncrona
+            if (waitUntil) {
+                waitUntil(sql("UPDATE sessions SET last_active = CURRENT_TIMESTAMP WHERE id = $1", [sessionId]));
+            }
+            
+            return { isValid: true, userId, sessionId };
+        }
+
+        return { isValid: true, userId };
+    } catch (e) {
+        return { isValid: false, error: "Erro ao validar token", status: 401 };
+    }
 };
 
 /**

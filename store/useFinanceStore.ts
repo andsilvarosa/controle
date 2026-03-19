@@ -71,6 +71,13 @@ interface FinanceState {
   isPrivacyMode: boolean;
   togglePrivacyMode: () => void;
 
+  activeSessions: any[];
+  currentSessionId: string | null;
+  isSessionLoading: boolean;
+  fetchActiveSessions: () => Promise<void>;
+  revokeSession: (sessionId: string) => Promise<void>;
+  revokeOtherSessions: () => Promise<void>;
+
   addTransaction: (t: Transaction) => Promise<void>;
   bulkAddTransactions: (transactions: Transaction[]) => Promise<void>;
   updateTransaction: (t: Transaction) => Promise<void>;
@@ -297,6 +304,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
     recurrenceExceptions: [],
     is2FAEnabled: false,
     isPrivacyMode: false,
+    activeSessions: [],
+    currentSessionId: null,
+    isSessionLoading: false,
 
     activeModal: null,
     setActiveModal: (modal) => set({ activeModal: modal }),
@@ -840,6 +850,42 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
     set2FAEnabled: (val) => set({ is2FAEnabled: val }),
     togglePrivacyMode: () => set(state => ({ isPrivacyMode: !state.isPrivacyMode })),
     
+    fetchActiveSessions: async () => {
+        set({ isSessionLoading: true });
+        try {
+            const sessions = await api('sessions', 'POST', { action: 'list' });
+            const current = sessions.find((s: any) => s.isCurrent)?.id || null;
+            set({ activeSessions: sessions, currentSessionId: current });
+        } catch (e) {
+            console.error("Erro ao buscar sessões:", e);
+        } finally {
+            set({ isSessionLoading: false });
+        }
+    },
+
+    revokeSession: async (sessionId: string) => {
+        try {
+            await api('sessions', 'POST', { action: 'revoke', sessionId });
+            // Se revogou a própria sessão, desloga
+            if (sessionId === get().currentSessionId) {
+                get().logout();
+            } else {
+                await get().fetchActiveSessions();
+            }
+        } catch (e) {
+            console.error("Erro ao revogar sessão:", e);
+        }
+    },
+
+    revokeOtherSessions: async () => {
+        try {
+            await api('sessions', 'POST', { action: 'revoke_others' });
+            await get().fetchActiveSessions();
+        } catch (e) {
+            console.error("Erro ao revogar outras sessões:", e);
+        }
+    },
+
     // 🎫 APAGA O CRACHÁ NO LOGOUT
     logout: () => {
         localStorage.removeItem('sos_token');

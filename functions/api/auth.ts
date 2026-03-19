@@ -335,7 +335,9 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       await logAction(sql, id, "SIGNUP_SUCCESS", "Novo usuário cadastrado.", context.request);
 
       // 🎫 SUCESSO CADASTRO: Gera o Token (Crachá)
-      const tokenJWT = await jwt.sign({ id: id, email: cleanEmail, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
+      const userForSession = { id, name: cleanName || "Novo Usuário", email: cleanEmail };
+      const sessionId = await handleNewLogin(userForSession, context.request);
+      const tokenJWT = await jwt.sign({ id: id, email: cleanEmail, sid: sessionId, exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) }, JWT_SECRET);
       const cookieHeader = `sos_token=${tokenJWT}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400`;
       return new Response(JSON.stringify({ id, name: cleanName || "Novo Usuário", email: cleanEmail, token: tokenJWT }), { status: 201, headers: { ...headers, 'Set-Cookie': cookieHeader } });
     }

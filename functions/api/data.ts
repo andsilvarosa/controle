@@ -1,6 +1,5 @@
 import { getDb } from "../../lib/db";
-import { getSecurityHeaders } from "../../lib/security";
-import jwt from '@tsndr/cloudflare-worker-jwt';
+import { getSecurityHeaders, validateSession } from "../../lib/security";
 
 type PagesFunction<T = any> = (context: {
   request: Request;
@@ -30,44 +29,18 @@ export const onRequestGet: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: str
       return new Response(JSON.stringify({ error: "Falta o userId" }), { status: 400, headers });
     }
 
-    // ==========================================
-    // 🔒 1. O GUARDA DA PORTA: VERIFICA O CRACHÁ
-    // ==========================================
-    const cookieHeader = context.request.headers.get("Cookie");
-    let token = null;
-    if (cookieHeader) {
-      const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
-        const [key, value] = cookie.split('=').map(c => c.trim());
-        acc[key] = value;
-        return acc;
-      }, {} as Record<string, string>);
-      token = cookies['sos_token'];
-    }
-
-    if (!token) {
-      const authHeader = context.request.headers.get("Authorization");
-      if (authHeader && authHeader.startsWith("Bearer ")) {
-        token = authHeader.split(" ")[1];
-      }
-    }
-
-    if (!token) {
-       return new Response(JSON.stringify({ error: "Acesso Negado. O Token não foi fornecido." }), { status: 401, headers });
-    }
+    const sql = getDb(context.env.DATABASE_URL);
     const secret = context.env.JWT_SECRET;
-    if (!secret) {
-        return new Response(JSON.stringify({ error: "Erro de configuração: JWT_SECRET não definida." }), { status: 500, headers });
+
+    // ==========================================
+    // 🔒 1. O GUARDA DA PORTA: VERIFICA O CRACHÁ E A SESSÃO
+    // ==========================================
+    const session = await validateSession(context.request, secret, sql, context.waitUntil);
+    if (!session.isValid) {
+       return new Response(JSON.stringify({ error: session.error }), { status: session.status, headers });
     }
 
-    // 🔒 2. VERIFICA SE O CRACHÁ É FALSO OU ESTÁ EXPIRADO
-    const isValid = await jwt.verify(token, secret);
-    if (!isValid) {
-       return new Response(JSON.stringify({ error: "Token inválido ou expirado. Faça login novamente." }), { status: 401, headers });
-    }
-
-    // 🔒 3. VERIFICA SE O CRACHÁ PERTENCE À PESSOA CERTA (Evita ataques IDOR)
-    const { payload } = jwt.decode(token);
-    const authUserId = (payload as any).id;
+    const authUserId = session.userId;
     
     if (userId && authUserId !== userId) {
        return new Response(JSON.stringify({ error: "Acesso não autorizado a estes dados." }), { status: 403, headers });
@@ -77,8 +50,6 @@ export const onRequestGet: PagesFunction<{ DATABASE_URL: string, JWT_SECRET: str
     // ==========================================
     // 🔓 FIM DA SEGURANÇA. A PORTA FOI ABERTA!
     // ==========================================
-
-    const sql = getDb(context.env.DATABASE_URL);
 
     // Busca os dados no banco
     const transactions = await sql("SELECT * FROM transactions WHERE user_id = $1 ORDER BY date DESC", [targetUserId]);

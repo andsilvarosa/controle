@@ -330,7 +330,8 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
 
     // --- SIGNUP ---
     if (action === "signup") {
-      if (!email || !password || !userData?.name) {
+      const signupPassword = password || userData?.password;
+      if (!email || !signupPassword || !userData?.name) {
         return new Response(JSON.stringify({ error: "Todos os campos são obrigatórios." }), { status: 400, headers });
       }
 
@@ -347,7 +348,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         return new Response(JSON.stringify({ error: "E-mail inválido." }), { status: 400, headers });
       }
       
-      const pwdCheck = validatePassword(password);
+      const pwdCheck = validatePassword(signupPassword);
       if (!pwdCheck.valid) {
         return new Response(JSON.stringify({ error: pwdCheck.message }), { status: 400, headers });
       }
@@ -358,8 +359,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       }
 
       const id = crypto.randomUUID(); 
-      const rawPassword = userData?.password || password;
-      const hashedPassword = await hashPassword(rawPassword);
+      const hashedPassword = await hashPassword(signupPassword);
       
       await sql(
         "INSERT INTO users (id, name, email, phone, password, avatar) VALUES ($1, $2, $3, $4, $5, $6)", 

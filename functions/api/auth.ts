@@ -24,13 +24,20 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
   const headers = getSecurityHeaders(origin);
   const ip = context.request.headers.get("CF-Connecting-IP") || "unknown";
 
-  // 🛡️ PROTEÇÃO CSRF BÁSICA: Verificar Origin
-  const allowedOrigins = [
-    "https://ais-dev-mmrmygbrpgamqqlhn5uhnm-61596290429.us-east1.run.app",
-    "https://ais-pre-mmrmygbrpgamqqlhn5uhnm-61596290429.us-east1.run.app"
-  ];
+  // 🛡️ PROTEÇÃO CSRF: Verificar Origin
+  const isAllowedOrigin = (origin: string | null) => {
+    if (!origin) return true; // Requisições sem origin (mesmo site) são permitidas
+    const url = new URL(origin);
+    return (
+      url.hostname.endsWith(".run.app") || // AI Studio Previews
+      url.hostname.endsWith(".pages.dev") || // Cloudflare Pages
+      url.hostname === "localhost" || // Desenvolvimento local
+      url.hostname.endsWith(".sostec.top") // Seu domínio customizado
+    );
+  };
   
-  if (origin && !allowedOrigins.includes(origin)) {
+  if (origin && !isAllowedOrigin(origin)) {
+      console.error(`Bloqueio CSRF: Origin ${origin} não autorizado.`);
       return new Response(JSON.stringify({ error: "Requisição não autorizada (CORS/CSRF)." }), { status: 403, headers });
   }
 

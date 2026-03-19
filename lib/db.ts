@@ -193,6 +193,20 @@ export const initSchema = async (sql: any) => {
         UNIQUE(user_id, user_agent, ip_address)
       )
     `);
+
+    // --- RATE LIMITS ---
+    await sql(`
+      CREATE TABLE IF NOT EXISTS rate_limits (
+        key TEXT PRIMARY KEY,
+        attempts INTEGER DEFAULT 0,
+        last_attempt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        expires_at TIMESTAMP
+      )
+    `);
+
+    try {
+        await sql(`CREATE INDEX IF NOT EXISTS idx_rate_limits_expires_at ON rate_limits(expires_at)`);
+    } catch (e) { console.log("Migration warning (Rate Limits Index):", e); }
     
   } catch (e: any) {
     console.error("[Schema Init Error]", e.message);

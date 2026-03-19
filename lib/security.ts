@@ -8,23 +8,58 @@ export const getSecurityHeaders = (origin: string | null = null) => {
   const headers: any = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie, X-CSRF-Token',
     'Access-Control-Allow-Credentials': 'true',
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://picsum.photos; connect-src 'self' https://*.run.app",
+    'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://picsum.photos; connect-src 'self' https://*.run.app https://*.sostec.top; frame-ancestors 'none'; object-src 'none'; base-uri 'self';",
+    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+    'X-Permitted-Cross-Domain-Policies': 'none',
   };
 
   if (origin) {
+    // Em produção, você deve validar o origin contra uma whitelist
     headers['Access-Control-Allow-Origin'] = origin;
-  } else {
-    headers['Access-Control-Allow-Origin'] = '*';
   }
 
   return headers;
+};
+
+/**
+ * Verifica o limite de taxa (Rate Limit) para uma chave específica.
+ */
+export const checkRateLimit = async (sql: any, key: string, limit: number, windowSeconds: number): Promise<{ success: boolean; remaining: number }> => {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + windowSeconds * 1000);
+    
+    // Limpar registros expirados (opcional, pode ser feito em cron)
+    // await sql("DELETE FROM rate_limits WHERE expires_at < CURRENT_TIMESTAMP");
+
+    const rows = await sql("SELECT attempts, expires_at FROM rate_limits WHERE key = $1", [key]);
+    
+    if (rows.length === 0) {
+        await sql("INSERT INTO rate_limits (key, attempts, expires_at) VALUES ($1, 1, $2)", [key, expiresAt]);
+        return { success: true, remaining: limit - 1 };
+    }
+
+    const record = rows[0];
+    const recordExpiresAt = new Date(record.expires_at);
+
+    if (now > recordExpiresAt) {
+        // Janela expirou, resetar
+        await sql("UPDATE rate_limits SET attempts = 1, expires_at = $1, last_attempt = CURRENT_TIMESTAMP WHERE key = $2", [expiresAt, key]);
+        return { success: true, remaining: limit - 1 };
+    }
+
+    if (record.attempts >= limit) {
+        return { success: false, remaining: 0 };
+    }
+
+    await sql("UPDATE rate_limits SET attempts = attempts + 1, last_attempt = CURRENT_TIMESTAMP WHERE key = $1", [key]);
+    return { success: true, remaining: limit - (record.attempts + 1) };
 };
 
 interface SessionValidationResult {

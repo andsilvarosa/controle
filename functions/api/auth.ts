@@ -1,5 +1,5 @@
 import { getDb } from "../../lib/db";
-import { getSecurityHeaders, validatePassword, validateEmail, sanitizeInput, logAction } from "../../lib/security";
+import { getSecurityHeaders, validatePassword, validateEmail, sanitizeInput, logAction, checkRateLimit } from "../../lib/security";
 import { Resend } from 'resend';
 import * as OTPAuth from 'otpauth';
 import jwt from '@tsndr/cloudflare-worker-jwt';
@@ -13,66 +13,6 @@ type PagesFunction<T = any> = (context: {
     data: any;
 }) => Response | Promise<Response>;
 
-const headers = getSecurityHeaders();
-
-async function hashPassword(password: string): Promise<string> {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(password),
-    { name: "PBKDF2" },
-    false,
-    ["deriveBits"]
-  );
-  const hashBuffer = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt: salt,
-      iterations: 100000,
-      hash: "SHA-256"
-    },
-    keyMaterial,
-    256
-  );
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
-  return `${saltHex}:${hashHex}`;
-}
-
-async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
-  if (storedHash.includes(':')) {
-    const [saltHex, hashHex] = storedHash.split(':');
-    const salt = new Uint8Array(saltHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
-    const keyMaterial = await crypto.subtle.importKey(
-      "raw",
-      new TextEncoder().encode(password),
-      { name: "PBKDF2" },
-      false,
-      ["deriveBits"]
-    );
-    const hashBuffer = await crypto.subtle.deriveBits(
-      {
-        name: "PBKDF2",
-        salt: salt,
-        iterations: 100000,
-        hash: "SHA-256"
-      },
-      keyMaterial,
-      256
-    );
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const computedHashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return computedHashHex === hashHex;
-  } else {
-    const msgBuffer = new TextEncoder().encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const computedHashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    return computedHashHex === storedHash;
-  }
-}
-
 export const onRequestOptions: PagesFunction = async (context) => {
   const origin = context.request.headers.get("Origin");
   const headers = getSecurityHeaders(origin);
@@ -82,15 +22,92 @@ export const onRequestOptions: PagesFunction = async (context) => {
 export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY: string, JWT_SECRET: string }> = async (context) => {
   const origin = context.request.headers.get("Origin");
   const headers = getSecurityHeaders(origin);
+  const ip = context.request.headers.get("CF-Connecting-IP") || "unknown";
+
+  // 🛡️ PROTEÇÃO CSRF BÁSICA: Verificar Origin
+  const allowedOrigins = [
+    "https://ais-dev-mmrmygbrpgamqqlhn5uhnm-61596290429.us-east1.run.app",
+    "https://ais-pre-mmrmygbrpgamqqlhn5uhnm-61596290429.us-east1.run.app"
+  ];
+  
+  if (origin && !allowedOrigins.includes(origin)) {
+      return new Response(JSON.stringify({ error: "Requisição não autorizada (CORS/CSRF)." }), { status: 403, headers });
+  }
+
   try {
     const sql = getDb(context.env.DATABASE_URL);
     const body: any = await context.request.json();
     const { action, email, password, userData, currentPassword, newPassword, userId, token, twoFactorToken, secret } = body;
 
+    // 🛡️ RATE LIMITING GLOBAL POR IP
+    const rateLimit = await checkRateLimit(sql, `rl_ip_${ip}`, 100, 3600); // 100 reqs/hora por IP
+    if (!rateLimit.success) {
+        return new Response(JSON.stringify({ error: "Muitas requisições. Tente novamente mais tarde." }), { status: 429, headers });
+    }
+
     // 🔑 Senha secreta para assinar o crachá (JWT)
     const JWT_SECRET = context.env.JWT_SECRET;
     if (!JWT_SECRET) {
         return new Response(JSON.stringify({ error: "Erro de configuração: JWT_SECRET não definida." }), { status: 500, headers });
+    }
+
+    // ... (resto das funções auxiliares)
+    async function hashPassword(password: string): Promise<string> {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const keyMaterial = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(password),
+        { name: "PBKDF2" },
+        false,
+        ["deriveBits"]
+      );
+      const hashBuffer = await crypto.subtle.deriveBits(
+        {
+          name: "PBKDF2",
+          salt: salt,
+          iterations: 100000,
+          hash: "SHA-256"
+        },
+        keyMaterial,
+        256
+      );
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+      return `${saltHex}:${hashHex}`;
+    }
+
+    async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+      if (storedHash.includes(':')) {
+        const [saltHex, hashHex] = storedHash.split(':');
+        const salt = new Uint8Array(saltHex.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+        const keyMaterial = await crypto.subtle.importKey(
+          "raw",
+          new TextEncoder().encode(password),
+          { name: "PBKDF2" },
+          false,
+          ["deriveBits"]
+        );
+        const hashBuffer = await crypto.subtle.deriveBits(
+          {
+            name: "PBKDF2",
+            salt: salt,
+            iterations: 100000,
+            hash: "SHA-256"
+          },
+          keyMaterial,
+          256
+        );
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const computedHashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return computedHashHex === hashHex;
+      } else {
+        const msgBuffer = new TextEncoder().encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const computedHashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return computedHashHex === storedHash;
+      }
     }
 
     const getAuthUser = async (req: Request) => {
@@ -203,6 +220,12 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       if (!email || !password) {
         return new Response(JSON.stringify({ error: "E-mail e senha são obrigatórios." }), { status: 400, headers });
       }
+
+      // 🛡️ RATE LIMITING POR E-MAIL (Prevenir brute force em conta específica)
+      const loginLimit = await checkRateLimit(sql, `login_attempt_${email}`, 5, 300); // 5 tentativas a cada 5 min
+      if (!loginLimit.success) {
+          return new Response(JSON.stringify({ error: "Muitas tentativas de login. Tente novamente em 5 minutos." }), { status: 429, headers });
+      }
       
       const cleanEmail = sanitizeInput(email);
       if (!validateEmail(cleanEmail)) {
@@ -249,6 +272,12 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
 
       if (user.two_factor_enabled) {
         if (twoFactorToken) {
+           // 🛡️ RATE LIMITING POR 2FA (Prevenir brute force no código TOTP)
+           const twoFactorLimit = await checkRateLimit(sql, `2fa_attempt_${user.id}`, 5, 300); // 5 tentativas a cada 5 min
+           if (!twoFactorLimit.success) {
+               return new Response(JSON.stringify({ error: "Muitas tentativas de 2FA. Tente novamente em 5 minutos." }), { status: 429, headers });
+           }
+
            if (!user.two_factor_secret) {
               return new Response(JSON.stringify({ error: "Erro de segurança: 2FA configurado incorretamente." }), { status: 500, headers });
            }
@@ -292,6 +321,12 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
     if (action === "signup") {
       if (!email || !password || !userData?.name) {
         return new Response(JSON.stringify({ error: "Todos os campos são obrigatórios." }), { status: 400, headers });
+      }
+
+      // 🛡️ RATE LIMITING POR IP PARA SIGNUP (Prevenir criação massiva de contas)
+      const signupLimit = await checkRateLimit(sql, `signup_ip_${ip}`, 3, 3600); // 3 contas por hora por IP
+      if (!signupLimit.success) {
+          return new Response(JSON.stringify({ error: "Limite de criação de contas excedido. Tente novamente mais tarde." }), { status: 429, headers });
       }
       
       const cleanEmail = sanitizeInput(email);

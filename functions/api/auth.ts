@@ -154,7 +154,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
                 const resend = new Resend(context.env.RESEND_API_KEY);
                 try {
                     await resend.emails.send({
-                        from: 'SOS Controle <seguranca@soscontrole.com>',
+                        from: 'SOS Controle <no-reply@sostec.top>',
                         to: user.email,
                         subject: '⚠️ Alerta de Segurança: Novo Acesso Detectado',
                         html: `

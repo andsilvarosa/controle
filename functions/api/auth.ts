@@ -424,7 +424,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
             const { error: resendError } = await resend.emails.send({
                 from: 'SOS Controle <no-reply@sostec.top>',
                 to: [cleanEmail],
-                subject: '🔑 Recupeção de Senha - SOS Controle',
+                subject: '🔑 Recupeção de Senha: SOS Controle',
                 html: `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f9; padding: 20px; color: #333;">
     <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
         <tr>

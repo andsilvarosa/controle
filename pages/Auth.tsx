@@ -349,6 +349,20 @@ export const Auth: React.FC = () => {
                     />
                   </div>
 
+                  {!isLogin && (
+                    <div className="relative group">
+                      <Smartphone className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-picpay-500 transition-colors" size={20} />
+                      <input 
+                        type="tel"
+                        required
+                        value={formData.phone}
+                        onChange={handlePhoneChange}
+                        className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-base"
+                        placeholder="WhatsApp / Celular"
+                      />
+                    </div>
+                  )}
+
                   <div className="relative group">
                     <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-picpay-500 transition-colors" size={20} />
                     <input 
@@ -363,6 +377,20 @@ export const Auth: React.FC = () => {
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
+
+                  {!isLogin && (
+                    <div className="relative group">
+                      <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-picpay-500 transition-colors" size={20} />
+                      <input 
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={formData.confirmPassword}
+                        onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
+                        className="w-full pl-14 pr-14 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-base"
+                        placeholder="Confirmar Senha"
+                      />
+                    </div>
+                  )}
 
                   <div className="flex justify-between items-center px-2">
                     <button onClick={() => setRememberMe(!rememberMe)} type="button" className="flex items-center gap-2.5 group">

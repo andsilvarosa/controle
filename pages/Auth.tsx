@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Smartphone, Loader2, AlertTriangle, Fingerprint, Eye, EyeOff, Check, Sparkles, LayoutDashboard, Send, KeyRound, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Smartphone, Loader2, AlertTriangle, Fingerprint, Eye, EyeOff, Check, Sparkles, LayoutDashboard, Send, KeyRound, ShieldCheck, Zap, Bell, Activity, TrendingUp, Shield, LockIcon, Info } from 'lucide-react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { MainLogo } from '../components/UI/MainLogo';
 
@@ -170,447 +170,327 @@ export const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col relative bg-brand-gray dark:bg-brand-dark selection:bg-brand-green selection:text-white overflow-x-hidden transition-colors duration-500">
+    <div className="min-h-screen w-full flex flex-col relative bg-[#f4f4f4] dark:bg-brand-dark selection:bg-brand-green selection:text-white overflow-x-hidden transition-colors duration-500 font-sans">
       
       {/* Background Decorativo Sutil */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <motion.div 
           animate={{ 
             scale: [1, 1.1, 1],
-            opacity: [0.1, 0.15, 0.1] 
+            opacity: [0.05, 0.1, 0.05] 
           }}
           transition={{ duration: 10, repeat: Infinity }}
           className="absolute -top-20 -right-20 w-[60vw] h-[60vw] bg-brand-green/10 rounded-full blur-[100px]" 
         />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.05, 0.1, 0.05] 
-          }}
-          transition={{ duration: 12, repeat: Infinity, delay: 2 }}
-          className="absolute -bottom-20 -left-20 w-[50vw] h-[50vw] bg-brand-green/5 rounded-full blur-[100px]" 
-        />
       </div>
 
-      <div className="flex-1 flex flex-col justify-center w-full p-4 lg:p-0 z-10 py-8 lg:py-0">
+      {/* HEADER & LOGIN FORM (TOP RIGHT) */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-8 lg:pt-12 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
         
+        {/* LOGO & BRANDING */}
         <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-[950px] mx-auto bg-white dark:bg-zinc-900 rounded-4xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] dark:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col lg:flex-row lg:h-[640px] border border-black/[0.03] dark:border-white/[0.05]"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-center gap-4"
         >
-          
-          {/* COLUNA VISUAL (ESQUERDA) - Estilo PicPay Green */}
-          <div className="lg:w-[42%] p-8 lg:p-14 flex flex-col justify-between relative overflow-hidden bg-brand-green min-h-[280px] lg:min-h-0">
-             {/* Padrão de círculos sutil */}
-             <div className="absolute inset-0 opacity-20">
-                <div className="absolute top-0 right-0 w-64 h-64 border-[40px] border-white rounded-full -mr-32 -mt-32" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 border-[30px] border-white rounded-full -ml-24 -mb-24" />
-             </div>
-
-             <div className="relative z-10">
-                <div className="flex items-center gap-3 text-white mb-10 lg:mb-14">
-                  <div className="p-2.5 bg-white rounded-2xl shadow-xl shadow-black/10">
-                     <MainLogo size={32} className="text-brand-green" />
-                  </div>
-                  <span className="font-extrabold text-xl lg:text-2xl tracking-tight">SOS Controle</span>
-                </div>
-                
-                <motion.div
-                  key={isLogin ? "login-text" : "signup-text"}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <h1 className="text-3xl lg:text-5xl font-extrabold text-white leading-[1.1] mb-6">
-                    {isRecovery 
-                      ? "Recupere sua conta."
-                      : require2FA 
-                          ? "Segurança em primeiro lugar."
-                          : (isLogin ? "Olá! Que bom ver você de novo." : "Crie sua conta em segundos.")}
-                  </h1>
-                  
-                  <p className="text-white/80 text-sm lg:text-base font-medium leading-relaxed max-w-[280px]">
-                    Gerencie suas finanças com a simplicidade que você merece.
-                  </p>
-                </motion.div>
-             </div>
-
-             <div className="relative z-10 mt-auto pt-8">
-                <div className="flex gap-1.5">
-                   <div className="w-8 h-1.5 bg-white rounded-full" />
-                   <div className="w-1.5 h-1.5 bg-white/40 rounded-full" />
-                   <div className="w-1.5 h-1.5 bg-white/40 rounded-full" />
-                </div>
-             </div>
+          <div className="p-3 bg-brand-green rounded-3xl shadow-2xl shadow-brand-green/20">
+            <MainLogo size={40} className="text-white" />
           </div>
+          <div className="flex flex-col">
+            <span className="font-black text-2xl lg:text-3xl tracking-tighter text-brand-dark dark:text-white">SOS Controle</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-green">Finanças Inteligentes</span>
+          </div>
+        </motion.div>
 
-          {/* COLUNA FORMULÁRIO (DIREITA) */}
-          <div className="lg:w-[58%] bg-white dark:bg-zinc-900 relative flex flex-col h-full">
-            {!isRecovery && !require2FA && (
-              <div className="absolute top-6 right-6 lg:top-10 lg:right-10 z-20">
-                 <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-2xl border border-black/[0.03] dark:border-white/[0.05]">
-                    <button 
-                        type="button"
-                        onClick={() => { setIsLogin(true); setError(''); }}
-                        className={`px-5 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${isLogin ? 'bg-white dark:bg-zinc-700 text-brand-green shadow-sm' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
-                    >
-                        Entrar
-                    </button>
-                    <button 
-                        type="button"
-                        onClick={() => { setIsLogin(false); setError(''); }}
-                        className={`px-5 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${!isLogin ? 'bg-white dark:bg-zinc-700 text-brand-green shadow-sm' : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'}`}
-                    >
-                        Criar conta
-                    </button>
-                 </div>
-              </div>
-            )}
-
-            <div className="flex-1 lg:overflow-y-auto custom-scrollbar p-8 lg:p-16 flex flex-col justify-center">
-              <div className="pt-12 lg:pt-0">
-                <AnimatePresence mode="wait">
-                  {/* 2FA INPUT UI */}
-                  {require2FA ? (
-                     <motion.div
-                       key="2fa"
-                       initial={{ opacity: 0, scale: 0.95 }}
-                       animate={{ opacity: 1, scale: 1 }}
-                       exit={{ opacity: 0, scale: 0.95 }}
-                       className="max-w-sm mx-auto w-full space-y-8"
-                     >
-                        <div className="text-center">
-                            <div className="w-20 h-20 bg-brand-green/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-brand-green/20">
-                               <ShieldCheck className="text-brand-green" size={40} />
-                            </div>
-                            <h3 className="text-2xl font-extrabold text-zinc-900 dark:text-white">Verificação</h3>
-                            <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-3">
-                               Digite o código de 6 dígitos para confirmar sua identidade.
-                            </p>
-                        </div>
-
-                        {error && (
-                          <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold">
-                             <AlertTriangle size={18} className="flex-shrink-0" />
-                             {error}
-                          </div>
-                        )}
-
-                        <form onSubmit={handleLoginSubmit} className="space-y-8">
-                           <div className="space-y-2">
-                              <div className="relative">
-                                 <input 
-                                    type="text"
-                                    required
-                                    autoFocus
-                                    value={twoFactorCode}
-                                    onChange={e => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                    className="w-full px-4 py-5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-3xl tracking-[0.4em] text-center shadow-inner"
-                                    placeholder="000000"
-                                 />
-                              </div>
-                           </div>
-
-                           <button 
-                              type="submit"
-                              disabled={isLoading || twoFactorCode.length !== 6}
-                              className="w-full py-5 bg-brand-green hover:bg-brand-green/90 text-white rounded-3xl font-extrabold text-base shadow-xl shadow-brand-green/20 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
-                           >
-                              {isLoading ? <Loader2 className="animate-spin" size={24} /> : "Confirmar Acesso"}
-                           </button>
-                        </form>
-                        
-                        <button 
-                           onClick={() => { setRequire2FA(false); setTwoFactorCode(''); setError(''); }}
-                           className="w-full text-zinc-400 hover:text-brand-green text-xs font-bold uppercase tracking-widest transition-colors"
-                        >
-                           Cancelar e Voltar
-                        </button>
-                     </motion.div>
-                  ) : !isRecovery ? (
-                    /* LOGIN / SIGNUP FORM */
-                    <motion.form
-                       key={isLogin ? "login-form" : "signup-form"}
-                       initial={{ opacity: 0, x: 20 }}
-                       animate={{ opacity: 1, x: 0 }}
-                       exit={{ opacity: 0, x: -20 }}
-                       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                       onSubmit={isLogin ? handleLoginSubmit : handleSignupSubmit} 
-                       className="space-y-5 max-w-sm mx-auto w-full"
-                    >
-                       {error && (
-                          <motion.div 
-                            initial={{ height: 0, opacity: 0 }} 
-                            animate={{ height: 'auto', opacity: 1 }}
-                            className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold"
-                          >
-                             <AlertTriangle size={18} className="flex-shrink-0" />
-                             {error}
-                          </motion.div>
-                       )}
-
-                       {!isLogin && (
-                          <div className="space-y-1.5">
-                             <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 ml-1">Como quer ser chamado?</label>
-                             <div className="relative">
-                                <User className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-                                <input 
-                                   required
-                                   value={formData.name}
-                                   onChange={e => setFormData({...formData, name: e.target.value})}
-                                   className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-sm"
-                                   placeholder="Seu nome completo"
-                                />
-                             </div>
-                          </div>
-                       )}
-
-                       <div className="space-y-1.5">
-                          <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 ml-1">E-mail</label>
-                          <div className="relative">
-                             <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-                             <input 
-                                type="email"
-                                required
-                                value={formData.email}
-                                onChange={e => setFormData({...formData, email: e.target.value})}
-                                className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-sm"
-                                placeholder="exemplo@email.com"
-                             />
-                          </div>
-                       </div>
-
-                       {!isLogin && (
-                          <div className="space-y-1.5">
-                             <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 ml-1">Celular</label>
-                             <div className="relative">
-                                <Smartphone className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-                                <input 
-                                   type="tel"
-                                   required
-                                   value={formData.phone}
-                                   onChange={handlePhoneChange}
-                                   className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-sm"
-                                   placeholder="(00) 00000-0000"
-                                />
-                             </div>
-                          </div>
-                       )}
-
-                       <div className="space-y-1.5">
-                          <div className="flex justify-between items-end px-1">
-                             <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400">Senha</label>
-                             {isLogin && (
-                               <button 
-                                 type="button" 
-                                 onClick={() => setIsRecovery(true)} 
-                                 className="text-xs font-bold text-brand-green hover:underline transition-all"
-                               >
-                                 Esqueceu?
-                               </button>
-                             )}
-                          </div>
-                          <div className="relative">
-                             <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-                             <input 
-                                type={showPassword ? "text" : "password"}
-                                required
-                                value={formData.password}
-                                onChange={e => setFormData({...formData, password: e.target.value})}
-                                className="w-full pl-14 pr-12 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-sm"
-                                placeholder="Sua senha secreta"
-                             />
-                             <button 
-                                type="button" 
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-brand-green transition-colors"
-                             >
-                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                             </button>
-                          </div>
-                       </div>
-
-                       {!isLogin && (
-                          <div className="space-y-1.5">
-                             <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 ml-1">Confirme sua senha</label>
-                             <input 
-                                type="password"
-                                required
-                                value={formData.confirmPassword}
-                                onChange={e => setFormData({...formData, confirmPassword: e.target.value})}
-                                className="w-full px-6 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-sm"
-                                placeholder="Repita a senha"
-                             />
-                          </div>
-                       )}
-
-                       {isLogin && (
-                          <div className="flex items-center gap-3 pt-2">
-                            <button 
-                               type="button"
-                               onClick={() => setRememberMe(!rememberMe)}
-                               className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-300 ${rememberMe ? 'bg-brand-green border-brand-green' : 'bg-transparent border-zinc-200 dark:border-zinc-700 hover:border-brand-green'}`}
-                            >
-                               {rememberMe && <Check size={14} className="text-white" strokeWidth={4} />}
-                            </button>
-                            <span className="text-sm font-medium text-zinc-500 dark:text-zinc-400 select-none cursor-pointer" onClick={() => setRememberMe(!rememberMe)}>Lembrar de mim</span>
-                          </div>
-                       )}
-
-                       <button 
-                          type="submit"
-                          disabled={isLoading}
-                          className="w-full py-5 bg-brand-green hover:bg-brand-green/90 text-white rounded-3xl font-extrabold text-base shadow-xl shadow-brand-green/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98] disabled:opacity-70 mt-4 group relative overflow-hidden"
-                       >
-                          {isLoading ? (
-                             <Loader2 className="animate-spin" size={24} />
-                          ) : (
-                             <>
-                                <span>{isLogin ? 'Entrar agora' : 'Criar minha conta'}</span>
-                                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                             </>
-                          )}
-                       </button>
-                    </motion.form>
-                  ) : (
-                    /* RECOVERY FLOW */
-                     <motion.div
-                       key="recovery"
-                       initial={{ opacity: 0, scale: 0.95 }}
-                       animate={{ opacity: 1, scale: 1 }}
-                       exit={{ opacity: 0, scale: 0.95 }}
-                       className="max-w-sm mx-auto w-full space-y-8"
-                     >
-                        <div className="text-center">
-                            <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-zinc-200 dark:border-zinc-700">
-                               <Sparkles className="text-brand-green" size={40} />
-                            </div>
-                            <h3 className="text-2xl font-extrabold text-zinc-900 dark:text-white">Recuperação</h3>
-                            <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-3">
-                               {recoveryStep === 1 
-                                 ? "Enviaremos um código de segurança para o seu e-mail." 
-                                 : "Quase lá! Defina sua nova senha de acesso."}
-                            </p>
-                        </div>
-
-                        {error && (
-                          <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-xs font-bold">
-                             <AlertTriangle size={18} className="flex-shrink-0" />
-                             {error}
-                          </div>
-                        )}
-
-                        {successMsg && (
-                          <div className="p-4 bg-brand-green/10 border border-brand-green/20 rounded-2xl flex items-center gap-3 text-brand-green text-xs font-bold">
-                             <Check size={18} className="flex-shrink-0" />
-                             {successMsg}
-                          </div>
-                        )}
-
-                        {recoveryStep === 1 ? (
-                           <form onSubmit={handleRequestCode} className="space-y-6">
-                              <div className="space-y-1.5">
-                                 <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 ml-1">E-mail cadastrado</label>
-                                 <div className="relative">
-                                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-                                    <input 
-                                       type="email"
-                                       required
-                                       value={recoveryEmail}
-                                       onChange={e => setRecoveryEmail(e.target.value)}
-                                       className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-sm"
-                                       placeholder="seu@email.com"
-                                    />
-                                 </div>
-                              </div>
-                              <button 
-                                 type="submit"
-                                 disabled={isProcessing}
-                                 className="w-full py-5 bg-zinc-900 dark:bg-zinc-700 text-white rounded-3xl font-extrabold text-sm transition-all flex items-center justify-center gap-3 shadow-xl shadow-black/10"
-                              >
-                                 {isProcessing ? <Loader2 className="animate-spin" size={20} /> : (
-                                    <>
-                                       <span>Enviar código</span>
-                                       <Send size={18} />
-                                    </>
-                                 )}
-                              </button>
-                           </form>
-                        ) : (
-                           <form onSubmit={handleResetSubmit} className="space-y-5">
-                              <div className="space-y-1.5">
-                                 <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 ml-1">Código de 6 dígitos</label>
-                                 <div className="relative">
-                                    <KeyRound className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-                                    <input 
-                                       type="text"
-                                       required
-                                       value={recoveryCode}
-                                       onChange={e => setRecoveryCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                       className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-lg tracking-widest"
-                                       placeholder="123456"
-                                    />
-                                 </div>
-                              </div>
-                              <div className="space-y-1.5">
-                                 <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 ml-1">Nova senha</label>
-                                 <div className="relative">
-                                    <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-                                    <input 
-                                       type="password"
-                                       required
-                                       value={newPassword}
-                                       onChange={e => setNewPassword(e.target.value)}
-                                       className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-sm"
-                                       placeholder="Mínimo 8 caracteres"
-                                    />
-                                 </div>
-                              </div>
-                              <div className="space-y-1.5">
-                                 <label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 ml-1">Confirme a nova senha</label>
-                                 <div className="relative">
-                                    <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
-                                    <input 
-                                       type="password"
-                                       required
-                                       value={confirmNewPassword}
-                                       onChange={e => setConfirmNewPassword(e.target.value)}
-                                       className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-sm"
-                                       placeholder="Repita a senha"
-                                    />
-                                 </div>
-                              </div>
-                              <button 
-                                 type="submit"
-                                 disabled={isProcessing}
-                                 className="w-full py-5 bg-brand-green hover:bg-brand-green/90 text-white rounded-3xl font-extrabold text-sm shadow-xl shadow-brand-green/20 transition-all flex items-center justify-center gap-3"
-                              >
-                                 {isProcessing ? <Loader2 className="animate-spin" size={20} /> : "Redefinir Senha"}
-                              </button>
-                           </form>
-                        )}
-
-                        <button 
-                           onClick={() => { setIsRecovery(false); setRecoveryStep(1); setError(''); setSuccessMsg(''); setNewPassword(''); setConfirmNewPassword(''); }}
-                           className="w-full text-zinc-400 hover:text-brand-green text-xs font-bold uppercase tracking-widest transition-colors"
-                        >
-                           Voltar ao início
-                        </button>
-                     </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+        {/* COMPACT AUTH FORM */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full lg:w-auto"
+        >
+          <div className="bg-white dark:bg-zinc-900 p-6 lg:p-8 rounded-4xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-black/[0.03] dark:border-white/[0.05] w-full lg:min-w-[420px]">
+            
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-black text-brand-dark dark:text-white tracking-tight">
+                {isRecovery ? "Recuperar" : require2FA ? "Segurança" : (isLogin ? "Entrar" : "Criar Conta")}
+              </h2>
+              {!isRecovery && !require2FA && (
+                <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-2xl">
+                  <button 
+                    onClick={() => { setIsLogin(true); setError(''); }}
+                    className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isLogin ? 'bg-white dark:bg-zinc-700 text-brand-green shadow-sm' : 'text-zinc-400'}`}
+                  >
+                    Login
+                  </button>
+                  <button 
+                    onClick={() => { setIsLogin(false); setError(''); }}
+                    className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isLogin ? 'bg-white dark:bg-zinc-700 text-brand-green shadow-sm' : 'text-zinc-400'}`}
+                  >
+                    Cadastro
+                  </button>
+                </div>
+              )}
             </div>
+
+            <AnimatePresence mode="wait">
+              {require2FA ? (
+                <motion.form 
+                  key="2fa"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  onSubmit={handleLoginSubmit} 
+                  className="space-y-4"
+                >
+                  <input 
+                    type="text"
+                    required
+                    autoFocus
+                    value={twoFactorCode}
+                    onChange={e => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className="w-full px-4 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-black text-2xl tracking-[0.5em] text-center"
+                    placeholder="000000"
+                  />
+                  <button 
+                    type="submit"
+                    disabled={isLoading || twoFactorCode.length !== 6}
+                    className="w-full py-4 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-brand-green/20 disabled:opacity-50"
+                  >
+                    {isLoading ? <Loader2 className="animate-spin mx-auto" size={20} /> : "Verificar"}
+                  </button>
+                  <button onClick={() => setRequire2FA(false)} className="w-full text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:text-brand-green">Voltar</button>
+                </motion.form>
+              ) : !isRecovery ? (
+                <motion.form
+                  key={isLogin ? "login" : "signup"}
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  onSubmit={isLogin ? handleLoginSubmit : handleSignupSubmit}
+                  className="space-y-4"
+                >
+                  {error && (
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-center gap-2 text-red-600 dark:text-red-400 text-[10px] font-black uppercase tracking-tight">
+                      <AlertTriangle size={14} /> {error}
+                    </div>
+                  )}
+
+                  {!isLogin && (
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                      <input 
+                        required
+                        value={formData.name}
+                        onChange={e => setFormData({...formData, name: e.target.value})}
+                        className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-sm"
+                        placeholder="Nome completo"
+                      />
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                    <input 
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={e => setFormData({...formData, email: e.target.value})}
+                      className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-sm"
+                      placeholder="E-mail"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                    <input 
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={formData.password}
+                      onChange={e => setFormData({...formData, password: e.target.value})}
+                      className="w-full pl-12 pr-12 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-sm"
+                      placeholder="Senha"
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400">
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
+                  {isLogin && (
+                    <div className="flex justify-between items-center px-1">
+                      <button onClick={() => setRememberMe(!rememberMe)} type="button" className="flex items-center gap-2 group">
+                        <div className={`w-4 h-4 rounded border transition-all ${rememberMe ? 'bg-brand-green border-brand-green' : 'border-zinc-300 group-hover:border-brand-green'}`}>
+                          {rememberMe && <Check size={12} className="text-white" />}
+                        </div>
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Lembrar</span>
+                      </button>
+                      <button onClick={() => setIsRecovery(true)} type="button" className="text-[10px] font-black text-brand-green uppercase tracking-widest hover:underline">Esqueceu?</button>
+                    </div>
+                  )}
+
+                  <button 
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-4 bg-brand-green hover:bg-brand-green/90 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-brand-green/20 transition-all active:scale-[0.98] disabled:opacity-70"
+                  >
+                    {isLoading ? <Loader2 className="animate-spin mx-auto" size={20} /> : (isLogin ? 'Entrar' : 'Cadastrar')}
+                  </button>
+                </motion.form>
+              ) : (
+                <motion.form 
+                  key="recovery"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  onSubmit={recoveryStep === 1 ? handleRequestCode : handleResetSubmit}
+                  className="space-y-4"
+                >
+                  {recoveryStep === 1 ? (
+                    <input 
+                      type="email"
+                      required
+                      value={recoveryEmail}
+                      onChange={e => setRecoveryEmail(e.target.value)}
+                      className="w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-sm"
+                      placeholder="E-mail cadastrado"
+                    />
+                  ) : (
+                    <div className="space-y-3">
+                      <input 
+                        type="text"
+                        required
+                        value={recoveryCode}
+                        onChange={e => setRecoveryCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        className="w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-black text-center tracking-widest"
+                        placeholder="Código"
+                      />
+                      <input 
+                        type="password"
+                        required
+                        value={newPassword}
+                        onChange={e => setNewPassword(e.target.value)}
+                        className="w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-sm"
+                        placeholder="Nova senha"
+                      />
+                    </div>
+                  )}
+                  <button 
+                    type="submit"
+                    disabled={isProcessing}
+                    className="w-full py-4 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-xs"
+                  >
+                    {isProcessing ? <Loader2 className="animate-spin mx-auto" size={20} /> : "Confirmar"}
+                  </button>
+                  <button onClick={() => setIsRecovery(false)} className="w-full text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:text-brand-green">Voltar</button>
+                </motion.form>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
       </div>
 
-      <div className="relative pb-8 lg:pb-0 lg:fixed lg:bottom-6 lg:left-0 lg:w-full text-center pointer-events-none z-10 opacity-40">
-         <p className="text-[10px] text-zinc-500 font-extrabold uppercase tracking-[0.2em]">
-            SOS Controle &copy; 2024 • Powered by PicPay Style
-         </p>
+      {/* PRESENTATION CARDS (BOTTOM) */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 mt-12 lg:mt-24 pb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* CARD ESQUERDA: DESTAQUES DO SOS */}
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white dark:bg-zinc-900 p-8 lg:p-12 rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.03)] border border-black/[0.02] dark:border-white/[0.05]"
+          >
+            <div className="flex items-center gap-4 mb-10">
+              <div className="p-3 bg-brand-green/10 rounded-2xl">
+                <Sparkles className="text-brand-green" size={24} />
+              </div>
+              <h3 className="text-xl lg:text-2xl font-black text-brand-dark dark:text-white uppercase tracking-tight">Destaques do SOS</h3>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl border border-black/[0.02] dark:border-white/[0.02] group hover:bg-white dark:hover:bg-zinc-800 transition-all hover:shadow-xl hover:shadow-black/5">
+                <Activity className="text-brand-green mb-4" size={24} />
+                <h4 className="font-black text-brand-dark dark:text-white text-sm mb-2">Projeções Inteligentes</h4>
+                <p className="text-[10px] text-zinc-500 font-bold leading-relaxed">Antecipe seu saldo para os próximos meses com IA.</p>
+              </div>
+
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl border border-black/[0.02] dark:border-white/[0.02] group hover:bg-white dark:hover:bg-zinc-800 transition-all hover:shadow-xl hover:shadow-black/5">
+                <Zap className="text-brand-green mb-4" size={24} />
+                <h4 className="font-black text-brand-dark dark:text-white text-sm mb-2">Automação de Regras</h4>
+                <p className="text-[10px] text-zinc-500 font-bold leading-relaxed">Categorização automática de todos os seus lançamentos.</p>
+              </div>
+
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl border border-black/[0.02] dark:border-white/[0.02] group hover:bg-white dark:hover:bg-zinc-800 transition-all hover:shadow-xl hover:shadow-black/5">
+                <Bell className="text-brand-green mb-4" size={24} />
+                <h4 className="font-black text-brand-dark dark:text-white text-sm mb-2">Alertas Ativos</h4>
+                <p className="text-[10px] text-zinc-500 font-bold leading-relaxed">Nunca mais esqueça um vencimento importante.</p>
+              </div>
+
+              <div className="p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl border border-black/[0.02] dark:border-white/[0.02] group hover:bg-white dark:hover:bg-zinc-800 transition-all hover:shadow-xl hover:shadow-black/5">
+                <EyeOff className="text-brand-green mb-4" size={24} />
+                <h4 className="font-black text-brand-dark dark:text-white text-sm mb-2">Modo Privacidade</h4>
+                <p className="text-[10px] text-zinc-500 font-bold leading-relaxed">Esconda seus valores sensíveis com apenas um clique.</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* CARD DIREITA: SEGURANÇA & LGPD */}
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-brand-dark p-8 lg:p-12 rounded-4xl shadow-2xl relative overflow-hidden"
+          >
+            {/* Glow effect */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-green/10 rounded-full blur-[80px] -mr-32 -mt-32" />
+
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-10">
+                <div className="p-3 bg-brand-green rounded-2xl shadow-lg shadow-brand-green/20">
+                  <ShieldCheck className="text-white" size={24} />
+                </div>
+                <h3 className="text-xl lg:text-2xl font-black text-white uppercase tracking-tight">Segurança & LGPD</h3>
+              </div>
+
+              <p className="text-zinc-400 text-sm lg:text-base font-bold leading-relaxed mb-10 max-w-md">
+                Sua privacidade é nossa prioridade absoluta. Operamos com os mais rigorosos padrões de proteção de dados para garantir que suas informações financeiras estejam sempre seguras.
+              </p>
+
+              <div className="space-y-6">
+                <div className="flex items-start gap-4 group">
+                  <div className="w-2 h-2 rounded-full bg-brand-green mt-2 group-hover:scale-150 transition-transform" />
+                  <div>
+                    <h4 className="text-white font-black text-sm uppercase tracking-widest mb-1">Conformidade LGPD</h4>
+                    <p className="text-[10px] text-zinc-500 font-bold">Tratamento de dados totalmente alinhado à Lei Geral de Proteção de Dados.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 group">
+                  <div className="w-2 h-2 rounded-full bg-brand-green mt-2 group-hover:scale-150 transition-transform" />
+                  <div>
+                    <h4 className="text-white font-black text-sm uppercase tracking-widest mb-1">Criptografia de Ponta</h4>
+                    <p className="text-[10px] text-zinc-500 font-bold">Seus dados são protegidos com protocolos de segurança bancária.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4 group">
+                  <div className="w-2 h-2 rounded-full bg-brand-green mt-2 group-hover:scale-150 transition-transform" />
+                  <div>
+                    <h4 className="text-white font-black text-sm uppercase tracking-widest mb-1">Zero Compartilhamento</h4>
+                    <p className="text-[10px] text-zinc-500 font-bold">Não vendemos nem compartilhamos seus dados com terceiros.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+        </div>
+      </div>
+
+      {/* FOOTER */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 pb-8 text-center lg:text-left opacity-30">
+        <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.3em]">
+          SOS Controle &copy; 2024 • Segurança Bancária Certificada
+        </p>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import {
   GraduationCap, ShieldCheck, Gift, Zap, ShoppingCart, Phone, Gamepad2, Wifi, Tv,
   Banknote, Coins, PiggyBank, HandCoins, User, Users, Baby, Stethoscope, Shirt, Armchair,
   CreditCard, ArrowUpRight, ArrowDownRight, CalendarRange, AlertTriangle, Droplets,
-  Sparkles, EyeOff, Shield, Bell
+  EyeOff, Shield
 } from 'lucide-react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { Transaction } from '../types';
@@ -205,74 +205,6 @@ const ModernKPI: React.FC<{ label: string, value: string, type: 'income' | 'expe
     );
 };
 
-// --- DESTAQUES E SEGURANÇA ---
-const ProjectHighlights: React.FC = () => {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Card de Destaques */}
-      <div className="bg-white dark:bg-brand-dark p-8 rounded-4xl border border-brand-gray/10 dark:border-brand-dark/50 shadow-sm relative overflow-hidden group">
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 bg-brand-green/10 rounded-2xl">
-              <Sparkles size={24} className="text-brand-green" />
-            </div>
-            <h2 className="text-xl font-black text-brand-dark dark:text-white uppercase tracking-tight">Destaques do SOS</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              { icon: Activity, title: "Projeções Inteligentes", desc: "Antecipe seu saldo para os próximos meses." },
-              { icon: Zap, title: "Automação de Regras", desc: "Categorização automática de lançamentos." },
-              { icon: Bell, title: "Alertas Ativos", desc: "Nunca mais esqueça um vencimento." },
-              { icon: EyeOff, title: "Modo Privacidade", desc: "Esconda seus valores com um clique." }
-            ].map((item, i) => (
-              <div key={i} className="p-4 rounded-3xl bg-brand-gray/30 dark:bg-brand-dark/80 border border-transparent hover:border-brand-green/20 transition-all">
-                <item.icon size={20} className="text-brand-green mb-2" />
-                <h4 className="font-black text-sm text-brand-dark dark:text-white mb-1">{item.title}</h4>
-                <p className="text-[11px] font-bold text-brand-dark/40 dark:text-brand-gray/40 leading-tight">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-brand-green/5 rounded-full blur-3xl" />
-      </div>
-
-      {/* Card de Segurança e LGPD */}
-      <div className="bg-brand-dark dark:bg-black p-8 rounded-4xl border border-white/5 shadow-2xl relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 bg-brand-green rounded-2xl shadow-lg shadow-brand-green/20">
-              <ShieldCheck size={24} className="text-white" />
-            </div>
-            <h2 className="text-xl font-black text-white uppercase tracking-tight">Segurança & LGPD</h2>
-          </div>
-
-          <p className="text-brand-gray/60 text-sm font-bold leading-relaxed mb-6">
-            Sua privacidade é nossa prioridade absoluta. Operamos com os mais rigorosos padrões de proteção de dados para garantir que suas informações financeiras estejam sempre seguras.
-          </p>
-
-          <div className="space-y-4">
-            {[
-              { title: "Conformidade LGPD", desc: "Tratamento de dados totalmente alinhado à Lei Geral de Proteção de Dados." },
-              { title: "Criptografia de Ponta", desc: "Seus dados são protegidos com protocolos de segurança bancária." },
-              { title: "Zero Compartilhamento", desc: "Não vendemos nem compartilhamos seus dados com terceiros." }
-            ].map((item, i) => (
-              <div key={i} className="flex gap-4 items-start">
-                <div className="mt-1 w-1.5 h-1.5 rounded-full bg-brand-green shrink-0" />
-                <div>
-                  <h4 className="text-xs font-black text-white uppercase tracking-widest mb-0.5">{item.title}</h4>
-                  <p className="text-[11px] font-bold text-brand-gray/40">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="absolute -left-10 -top-10 w-48 h-48 bg-brand-green/10 rounded-full blur-3xl opacity-50" />
-      </div>
-    </div>
-  );
-};
-
 export const Dashboard: React.FC = () => {
   const { 
       transactions, categories, wallets, 
@@ -395,9 +327,6 @@ export const Dashboard: React.FC = () => {
           <ModernKPI label="Despesas" value={formatCurrency(stats.expense)} type="expense" isBlurred={isPrivacyMode} />
           <ModernKPI label="Balanço Líquido" value={formatCurrency(stats.balance)} type="balance" isBlurred={isPrivacyMode} />
       </div>
-
-      {/* DESTAQUES E SEGURANÇA */}
-      <ProjectHighlights />
 
       {/* HORIZONTE FINANCEIRO */}
       <FinancialHorizon transactions={transactions} />

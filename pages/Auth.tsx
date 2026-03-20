@@ -429,6 +429,17 @@ export const Auth: React.FC = () => {
                   onSubmit={recoveryStep === 1 ? handleRequestCode : handleResetSubmit}
                   className="space-y-6"
                 >
+                  {error && (
+                    <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-center gap-3 text-red-600 dark:text-red-400 text-xs font-bold">
+                      <AlertTriangle size={18} className="shrink-0" /> {error}
+                    </div>
+                  )}
+                  {successMsg && (
+                    <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl flex items-center gap-3 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                      <Check size={18} className="shrink-0" /> {successMsg}
+                    </div>
+                  )}
+
                   {recoveryStep === 1 ? (
                     <div className="relative group">
                       <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-picpay-500 transition-colors" size={20} />
@@ -443,22 +454,39 @@ export const Auth: React.FC = () => {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <input 
-                        type="text"
-                        required
-                        value={recoveryCode}
-                        onChange={e => setRecoveryCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        className="w-full px-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-center text-xl tracking-[0.4em]"
-                        placeholder="Código"
-                      />
-                      <input 
-                        type="password"
-                        required
-                        value={newPassword}
-                        onChange={e => setNewPassword(e.target.value)}
-                        className="w-full px-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-base"
-                        placeholder="Nova Senha"
-                      />
+                      <div className="relative group">
+                        <KeyRound className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-picpay-500 transition-colors" size={20} />
+                        <input 
+                          type="text"
+                          required
+                          value={recoveryCode}
+                          onChange={e => setRecoveryCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-center text-xl tracking-[0.4em]"
+                          placeholder="Código"
+                        />
+                      </div>
+                      <div className="relative group">
+                        <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-picpay-500 transition-colors" size={20} />
+                        <input 
+                          type="password"
+                          required
+                          value={newPassword}
+                          onChange={e => setNewPassword(e.target.value)}
+                          className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-base"
+                          placeholder="Nova Senha"
+                        />
+                      </div>
+                      <div className="relative group">
+                        <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-picpay-500 transition-colors" size={20} />
+                        <input 
+                          type="password"
+                          required
+                          value={confirmNewPassword}
+                          onChange={e => setConfirmNewPassword(e.target.value)}
+                          className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-base"
+                          placeholder="Confirmar Nova Senha"
+                        />
+                      </div>
                     </div>
                   )}
                   <button 

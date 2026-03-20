@@ -170,197 +170,242 @@ export const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col relative bg-[#f4f4f4] dark:bg-brand-dark selection:bg-brand-green selection:text-white overflow-x-hidden transition-colors duration-500 font-sans">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#F5F5F5] dark:bg-brand-dark selection:bg-picpay-500 selection:text-white overflow-x-hidden transition-colors duration-500 font-sans p-4 lg:p-8">
       
       {/* Background Decorativo Sutil */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.1, 1],
-            opacity: [0.05, 0.1, 0.05] 
-          }}
-          transition={{ duration: 10, repeat: Infinity }}
-          className="absolute -top-20 -right-20 w-[60vw] h-[60vw] bg-brand-green/10 rounded-full blur-[100px]" 
-        />
+        <div className="absolute top-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-picpay-500/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-picpay-500/5 rounded-full blur-[120px]" />
       </div>
 
-      {/* HEADER & LOGIN FORM (TOP RIGHT) */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 pt-8 lg:pt-12 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+      {/* CONTAINER PRINCIPAL */}
+      <div className="relative z-10 w-full max-w-[1000px] flex flex-col items-center">
         
-        {/* LOGO & BRANDING */}
+        {/* CARD DE AUTENTICAÇÃO "SPLIT" */}
         <motion.div 
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="flex items-center gap-4"
-        >
-          <div className="p-3 bg-brand-green rounded-3xl shadow-2xl shadow-brand-green/20">
-            <MainLogo size={40} className="text-white" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-black text-2xl lg:text-3xl tracking-tighter text-brand-dark dark:text-white">SOS Controle</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-green">Finanças Inteligentes</span>
-          </div>
-        </motion.div>
-
-        {/* COMPACT AUTH FORM */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full lg:w-auto"
+          className="w-full bg-white dark:bg-zinc-900 rounded-[48px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] dark:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col lg:flex-row border border-black/[0.02] dark:border-white/[0.05]"
         >
-          <div className="bg-white dark:bg-zinc-900 p-6 lg:p-8 rounded-4xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-black/[0.03] dark:border-white/[0.05] w-full lg:min-w-[420px]">
-            
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-brand-dark dark:text-white tracking-tight">
-                {isRecovery ? "Recuperar" : require2FA ? "Segurança" : (isLogin ? "Entrar" : "Criar Conta")}
-              </h2>
-              {!isRecovery && !require2FA && (
-                <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-2xl">
-                  <button 
-                    onClick={() => { setIsLogin(true); setError(''); }}
-                    className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${isLogin ? 'bg-white dark:bg-zinc-700 text-brand-green shadow-sm' : 'text-zinc-400'}`}
-                  >
-                    Login
-                  </button>
-                  <button 
-                    onClick={() => { setIsLogin(false); setError(''); }}
-                    className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isLogin ? 'bg-white dark:bg-zinc-700 text-brand-green shadow-sm' : 'text-zinc-400'}`}
-                  >
-                    Cadastro
-                  </button>
+          
+          {/* LADO ESQUERDO: BRANDING (VERDE PICPAY) */}
+          <div className="w-full lg:w-[45%] bg-picpay-500 p-10 lg:p-16 flex flex-col justify-between relative overflow-hidden">
+            {/* Efeito de Brilho no Fundo */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[60px] -mr-32 -mt-32" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-[50px] -ml-24 -mb-24" />
+
+            <div className="relative z-10">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="flex items-center gap-3 mb-12"
+              >
+                <div className="p-2.5 bg-white rounded-2xl shadow-lg">
+                  <MainLogo size={32} className="text-picpay-500" />
                 </div>
-              )}
+                <span className="font-black text-2xl tracking-tighter text-white">SOS Controle</span>
+              </motion.div>
+
+              <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-3xl lg:text-4xl font-bold text-white leading-tight mb-6"
+              >
+                Sua vida financeira <br />
+                <span className="opacity-70">em um só lugar.</span>
+              </motion.h2>
+
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-white/80 text-sm font-medium leading-relaxed max-w-[280px]"
+              >
+                Gerencie seus gastos, planeje seu futuro e alcance seus objetivos com inteligência.
+              </motion.p>
+            </div>
+
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="relative z-10 mt-12 lg:mt-0"
+            >
+              <div className="flex -space-x-3">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full border-2 border-picpay-500 bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden">
+                    <img src={`https://picsum.photos/seed/user${i}/100/100`} alt="User" className="w-full h-full object-cover opacity-80" />
+                  </div>
+                ))}
+                <div className="w-10 h-10 rounded-full border-2 border-picpay-500 bg-white flex items-center justify-center text-[10px] font-black text-picpay-500">
+                  +10k
+                </div>
+              </div>
+              <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mt-3">Junte-se a milhares de usuários</p>
+            </motion.div>
+          </div>
+
+          {/* LADO DIREITO: FORMULÁRIO (BRANCO/CINZA) */}
+          <div className="w-full lg:w-[55%] p-10 lg:p-16 flex flex-col justify-center">
+            
+            <div className="mb-10">
+              <h3 className="text-2xl font-bold text-brand-dark dark:text-white mb-2">
+                {isRecovery ? "Recuperar conta" : require2FA ? "Segurança" : (isLogin ? "Bem-vindo de volta!" : "Crie sua conta grátis")}
+              </h3>
+              <p className="text-zinc-400 text-sm font-medium">
+                {isRecovery ? "Siga as instruções para redefinir sua senha" : require2FA ? "Confirme sua identidade para continuar" : (isLogin ? "Acesse sua conta para gerenciar suas finanças" : "Comece sua jornada financeira hoje mesmo")}
+              </p>
             </div>
 
             <AnimatePresence mode="wait">
               {require2FA ? (
                 <motion.form 
                   key="2fa"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
                   onSubmit={handleLoginSubmit} 
-                  className="space-y-4"
+                  className="space-y-6"
                 >
-                  <input 
-                    type="text"
-                    required
-                    autoFocus
-                    value={twoFactorCode}
-                    onChange={e => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="w-full px-4 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-black text-2xl tracking-[0.5em] text-center"
-                    placeholder="000000"
-                  />
+                  <div className="space-y-4">
+                    <div className="flex justify-center mb-4">
+                      <div className="w-16 h-16 bg-picpay-50 dark:bg-picpay-500/10 rounded-3xl flex items-center justify-center text-picpay-500">
+                        <ShieldCheck size={32} />
+                      </div>
+                    </div>
+                    <input 
+                      type="text"
+                      required
+                      autoFocus
+                      value={twoFactorCode}
+                      onChange={e => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      className="w-full px-4 py-5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-3xl tracking-[0.6em] text-center"
+                      placeholder="000000"
+                    />
+                  </div>
                   <button 
                     type="submit"
                     disabled={isLoading || twoFactorCode.length !== 6}
-                    className="w-full py-4 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-brand-green/20 disabled:opacity-50"
+                    className="w-full py-5 bg-picpay-500 hover:bg-picpay-600 text-white rounded-3xl font-bold uppercase tracking-widest text-sm shadow-xl shadow-picpay-500/20 transition-all active:scale-[0.98]"
                   >
-                    {isLoading ? <Loader2 className="animate-spin mx-auto" size={20} /> : "Verificar"}
+                    {isLoading ? <Loader2 className="animate-spin mx-auto" size={24} /> : "Verificar Código"}
                   </button>
-                  <button onClick={() => setRequire2FA(false)} className="w-full text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:text-brand-green">Voltar</button>
+                  <button onClick={() => setRequire2FA(false)} className="w-full text-xs font-bold text-zinc-400 hover:text-picpay-500 transition-colors uppercase tracking-widest">Voltar</button>
                 </motion.form>
               ) : !isRecovery ? (
                 <motion.form
                   key={isLogin ? "login" : "signup"}
-                  initial={{ opacity: 0, x: 10 }}
+                  initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
+                  exit={{ opacity: 0, x: -20 }}
                   onSubmit={isLogin ? handleLoginSubmit : handleSignupSubmit}
-                  className="space-y-4"
+                  className="space-y-5"
                 >
                   {error && (
-                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-center gap-2 text-red-600 dark:text-red-400 text-[10px] font-black uppercase tracking-tight">
-                      <AlertTriangle size={14} /> {error}
+                    <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-2xl flex items-center gap-3 text-red-600 dark:text-red-400 text-xs font-bold">
+                      <AlertTriangle size={18} className="shrink-0" /> {error}
                     </div>
                   )}
 
                   {!isLogin && (
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                    <div className="relative group">
+                      <User className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-picpay-500 transition-colors" size={20} />
                       <input 
                         required
                         value={formData.name}
                         onChange={e => setFormData({...formData, name: e.target.value})}
-                        className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-sm"
+                        className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-base"
                         placeholder="Nome completo"
                       />
                     </div>
                   )}
 
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                  <div className="relative group">
+                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-picpay-500 transition-colors" size={20} />
                     <input 
                       type="email"
                       required
                       value={formData.email}
                       onChange={e => setFormData({...formData, email: e.target.value})}
-                      className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-sm"
+                      className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-base"
                       placeholder="E-mail"
                     />
                   </div>
 
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                  <div className="relative group">
+                    <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-picpay-500 transition-colors" size={20} />
                     <input 
                       type={showPassword ? "text" : "password"}
                       required
                       value={formData.password}
                       onChange={e => setFormData({...formData, password: e.target.value})}
-                      className="w-full pl-12 pr-12 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-sm"
+                      className="w-full pl-14 pr-14 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-base"
                       placeholder="Senha"
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400">
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-picpay-500 transition-colors">
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                   </div>
 
-                  {isLogin && (
-                    <div className="flex justify-between items-center px-1">
-                      <button onClick={() => setRememberMe(!rememberMe)} type="button" className="flex items-center gap-2 group">
-                        <div className={`w-4 h-4 rounded border transition-all ${rememberMe ? 'bg-brand-green border-brand-green' : 'border-zinc-300 group-hover:border-brand-green'}`}>
-                          {rememberMe && <Check size={12} className="text-white" />}
-                        </div>
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Lembrar</span>
-                      </button>
-                      <button onClick={() => setIsRecovery(true)} type="button" className="text-[10px] font-black text-brand-green uppercase tracking-widest hover:underline">Esqueceu?</button>
-                    </div>
-                  )}
+                  <div className="flex justify-between items-center px-2">
+                    <button onClick={() => setRememberMe(!rememberMe)} type="button" className="flex items-center gap-2.5 group">
+                      <div className={`w-5 h-5 rounded-lg border-2 transition-all flex items-center justify-center ${rememberMe ? 'bg-picpay-500 border-picpay-500' : 'border-zinc-200 dark:border-zinc-700 group-hover:border-picpay-500'}`}>
+                        {rememberMe && <Check size={14} className="text-white stroke-[3]" />}
+                      </div>
+                      <span className="text-xs font-bold text-zinc-400">Lembrar</span>
+                    </button>
+                    <button onClick={() => setIsRecovery(true)} type="button" className="text-xs font-bold text-picpay-500 hover:underline">Esqueceu a senha?</button>
+                  </div>
 
-                  <button 
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full py-4 bg-brand-green hover:bg-brand-green/90 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-brand-green/20 transition-all active:scale-[0.98] disabled:opacity-70"
-                  >
-                    {isLoading ? <Loader2 className="animate-spin mx-auto" size={20} /> : (isLogin ? 'Entrar' : 'Cadastrar')}
-                  </button>
+                  <div className="pt-4 space-y-4">
+                    <button 
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full py-5 bg-picpay-500 hover:bg-picpay-600 text-white rounded-3xl font-bold uppercase tracking-widest text-sm shadow-xl shadow-picpay-500/20 transition-all active:scale-[0.98] disabled:opacity-70"
+                    >
+                      {isLoading ? <Loader2 className="animate-spin mx-auto" size={24} /> : (isLogin ? 'Entrar' : 'Criar Conta')}
+                    </button>
+
+                    <button 
+                      type="button"
+                      onClick={() => { setIsLogin(!isLogin); setError(''); }}
+                      className="w-full py-4 text-zinc-400 hover:text-picpay-500 transition-colors font-bold uppercase tracking-widest text-[10px]"
+                    >
+                      {isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Faça login'}
+                    </button>
+                  </div>
                 </motion.form>
               ) : (
                 <motion.form 
                   key="recovery"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
                   onSubmit={recoveryStep === 1 ? handleRequestCode : handleResetSubmit}
-                  className="space-y-4"
+                  className="space-y-6"
                 >
                   {recoveryStep === 1 ? (
-                    <input 
-                      type="email"
-                      required
-                      value={recoveryEmail}
-                      onChange={e => setRecoveryEmail(e.target.value)}
-                      className="w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-sm"
-                      placeholder="E-mail cadastrado"
-                    />
+                    <div className="relative group">
+                      <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-picpay-500 transition-colors" size={20} />
+                      <input 
+                        type="email"
+                        required
+                        value={recoveryEmail}
+                        onChange={e => setRecoveryEmail(e.target.value)}
+                        className="w-full pl-14 pr-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-base"
+                        placeholder="E-mail cadastrado"
+                      />
+                    </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <input 
                         type="text"
                         required
                         value={recoveryCode}
                         onChange={e => setRecoveryCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        className="w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-black text-center tracking-widest"
+                        className="w-full px-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-center text-xl tracking-[0.4em]"
                         placeholder="Código"
                       />
                       <input 
@@ -368,129 +413,119 @@ export const Auth: React.FC = () => {
                         required
                         value={newPassword}
                         onChange={e => setNewPassword(e.target.value)}
-                        className="w-full px-4 py-3.5 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-brand-green rounded-2xl text-zinc-900 dark:text-white focus:outline-none transition-all font-bold text-sm"
-                        placeholder="Nova senha"
+                        className="w-full px-5 py-4 bg-zinc-50 dark:bg-zinc-800 border-2 border-transparent focus:border-picpay-500 rounded-3xl text-zinc-900 dark:text-white focus:outline-none transition-all font-semibold text-base"
+                        placeholder="Nova Senha"
                       />
                     </div>
                   )}
                   <button 
                     type="submit"
                     disabled={isProcessing}
-                    className="w-full py-4 bg-brand-green text-white rounded-2xl font-black uppercase tracking-widest text-xs"
+                    className="w-full py-5 bg-picpay-500 hover:bg-picpay-600 text-white rounded-3xl font-bold uppercase tracking-widest text-sm shadow-xl shadow-picpay-500/20"
                   >
-                    {isProcessing ? <Loader2 className="animate-spin mx-auto" size={20} /> : "Confirmar"}
+                    {isProcessing ? <Loader2 className="animate-spin mx-auto" size={24} /> : (recoveryStep === 1 ? "Enviar Código" : "Redefinir Senha")}
                   </button>
-                  <button onClick={() => setIsRecovery(false)} className="w-full text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:text-brand-green">Voltar</button>
+                  <button onClick={() => setIsRecovery(false)} className="w-full text-xs font-bold text-zinc-400 hover:text-picpay-500 transition-colors uppercase tracking-widest">Voltar ao login</button>
                 </motion.form>
               )}
             </AnimatePresence>
           </div>
         </motion.div>
-      </div>
 
-      {/* PRESENTATION CARDS (BOTTOM) */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 mt-12 lg:mt-24 pb-16">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* BENTO GRID DE FUNCIONALIDADES (ABAIXO) */}
+        <div className="w-full mt-16 lg:mt-24 grid grid-cols-1 md:grid-cols-3 gap-6">
           
-          {/* CARD ESQUERDA: DESTAQUES DO SOS */}
           <motion.div 
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-zinc-900 p-8 lg:p-12 rounded-4xl shadow-[0_20px_60px_rgba(0,0,0,0.03)] border border-black/[0.02] dark:border-white/[0.05]"
+            transition={{ delay: 0.6 }}
+            className="md:col-span-2 bg-white dark:bg-zinc-900 p-8 rounded-[40px] border border-black/[0.02] dark:border-white/[0.05] shadow-sm flex flex-col lg:flex-row items-center gap-8 group hover:shadow-xl transition-all"
           >
-            <div className="flex items-center gap-4 mb-10">
-              <div className="p-3 bg-brand-green/10 rounded-2xl">
-                <Sparkles className="text-brand-green" size={24} />
-              </div>
-              <h3 className="text-xl lg:text-2xl font-black text-brand-dark dark:text-white uppercase tracking-tight">Destaques do SOS</h3>
+            <div className="w-24 h-24 shrink-0 bg-picpay-50 dark:bg-picpay-500/10 rounded-[32px] flex items-center justify-center text-picpay-500 group-hover:scale-110 transition-transform">
+              <Sparkles size={48} />
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl border border-black/[0.02] dark:border-white/[0.02] group hover:bg-white dark:hover:bg-zinc-800 transition-all hover:shadow-xl hover:shadow-black/5">
-                <Activity className="text-brand-green mb-4" size={24} />
-                <h4 className="font-black text-brand-dark dark:text-white text-sm mb-2">Projeções Inteligentes</h4>
-                <p className="text-[10px] text-zinc-500 font-bold leading-relaxed">Antecipe seu saldo para os próximos meses com IA.</p>
-              </div>
-
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl border border-black/[0.02] dark:border-white/[0.02] group hover:bg-white dark:hover:bg-zinc-800 transition-all hover:shadow-xl hover:shadow-black/5">
-                <Zap className="text-brand-green mb-4" size={24} />
-                <h4 className="font-black text-brand-dark dark:text-white text-sm mb-2">Automação de Regras</h4>
-                <p className="text-[10px] text-zinc-500 font-bold leading-relaxed">Categorização automática de todos os seus lançamentos.</p>
-              </div>
-
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl border border-black/[0.02] dark:border-white/[0.02] group hover:bg-white dark:hover:bg-zinc-800 transition-all hover:shadow-xl hover:shadow-black/5">
-                <Bell className="text-brand-green mb-4" size={24} />
-                <h4 className="font-black text-brand-dark dark:text-white text-sm mb-2">Alertas Ativos</h4>
-                <p className="text-[10px] text-zinc-500 font-bold leading-relaxed">Nunca mais esqueça um vencimento importante.</p>
-              </div>
-
-              <div className="p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl border border-black/[0.02] dark:border-white/[0.02] group hover:bg-white dark:hover:bg-zinc-800 transition-all hover:shadow-xl hover:shadow-black/5">
-                <EyeOff className="text-brand-green mb-4" size={24} />
-                <h4 className="font-black text-brand-dark dark:text-white text-sm mb-2">Modo Privacidade</h4>
-                <p className="text-[10px] text-zinc-500 font-bold leading-relaxed">Esconda seus valores sensíveis com apenas um clique.</p>
-              </div>
+            <div>
+              <h4 className="text-xl font-bold text-brand-dark dark:text-white mb-2">Projeções com Inteligência Artificial</h4>
+              <p className="text-sm text-zinc-400 font-medium leading-relaxed">
+                Nosso algoritmo analisa seus hábitos e projeta seu saldo para os próximos meses, ajudando você a tomar decisões melhores hoje.
+              </p>
             </div>
           </motion.div>
 
-          {/* CARD DIREITA: SEGURANÇA & LGPD */}
           <motion.div 
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="bg-brand-dark p-8 lg:p-12 rounded-4xl shadow-2xl relative overflow-hidden"
+            transition={{ delay: 0.7 }}
+            className="bg-picpay-500 p-8 rounded-[40px] shadow-xl shadow-picpay-500/20 flex flex-col justify-between group hover:scale-[1.02] transition-all"
           >
-            {/* Glow effect */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-green/10 rounded-full blur-[80px] -mr-32 -mt-32" />
-
-            <div className="relative z-10">
-              <div className="flex items-center gap-4 mb-10">
-                <div className="p-3 bg-brand-green rounded-2xl shadow-lg shadow-brand-green/20">
-                  <ShieldCheck className="text-white" size={24} />
-                </div>
-                <h3 className="text-xl lg:text-2xl font-black text-white uppercase tracking-tight">Segurança & LGPD</h3>
-              </div>
-
-              <p className="text-zinc-400 text-sm lg:text-base font-bold leading-relaxed mb-10 max-w-md">
-                Sua privacidade é nossa prioridade absoluta. Operamos com os mais rigorosos padrões de proteção de dados para garantir que suas informações financeiras estejam sempre seguras.
+            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-white mb-6">
+              <ShieldCheck size={28} />
+            </div>
+            <div>
+              <h4 className="text-xl font-bold text-white mb-2">Segurança Máxima</h4>
+              <p className="text-sm text-white/80 font-medium leading-relaxed">
+                Seus dados são protegidos com criptografia de ponta e protocolos bancários.
               </p>
+            </div>
+          </motion.div>
 
-              <div className="space-y-6">
-                <div className="flex items-start gap-4 group">
-                  <div className="w-2 h-2 rounded-full bg-brand-green mt-2 group-hover:scale-150 transition-transform" />
-                  <div>
-                    <h4 className="text-white font-black text-sm uppercase tracking-widest mb-1">Conformidade LGPD</h4>
-                    <p className="text-[10px] text-zinc-500 font-bold">Tratamento de dados totalmente alinhado à Lei Geral de Proteção de Dados.</p>
-                  </div>
-                </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="bg-white dark:bg-zinc-900 p-8 rounded-[40px] border border-black/[0.02] dark:border-white/[0.05] shadow-sm group hover:shadow-xl transition-all"
+          >
+            <div className="w-12 h-12 bg-picpay-50 dark:bg-picpay-500/10 rounded-2xl flex items-center justify-center text-picpay-500 mb-6 group-hover:rotate-12 transition-transform">
+              <Zap size={28} />
+            </div>
+            <h4 className="text-lg font-bold text-brand-dark dark:text-white mb-2">Automação</h4>
+            <p className="text-xs text-zinc-400 font-medium leading-relaxed">
+              Categorização automática de lançamentos e regras inteligentes para economizar tempo.
+            </p>
+          </motion.div>
 
-                <div className="flex items-start gap-4 group">
-                  <div className="w-2 h-2 rounded-full bg-brand-green mt-2 group-hover:scale-150 transition-transform" />
-                  <div>
-                    <h4 className="text-white font-black text-sm uppercase tracking-widest mb-1">Criptografia de Ponta</h4>
-                    <p className="text-[10px] text-zinc-500 font-bold">Seus dados são protegidos com protocolos de segurança bancária.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 group">
-                  <div className="w-2 h-2 rounded-full bg-brand-green mt-2 group-hover:scale-150 transition-transform" />
-                  <div>
-                    <h4 className="text-white font-black text-sm uppercase tracking-widest mb-1">Zero Compartilhamento</h4>
-                    <p className="text-[10px] text-zinc-500 font-bold">Não vendemos nem compartilhamos seus dados com terceiros.</p>
-                  </div>
-                </div>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+            className="md:col-span-2 bg-brand-dark p-8 rounded-[40px] shadow-2xl flex flex-col lg:flex-row items-center gap-8 group hover:shadow-picpay-500/10 transition-all"
+          >
+            <div className="flex-1">
+              <h4 className="text-xl font-bold text-white mb-2">Relatórios Detalhados</h4>
+              <p className="text-sm text-zinc-400 font-medium leading-relaxed">
+                Visualize sua evolução financeira com gráficos interativos e insights poderosos sobre seu comportamento de consumo.
+              </p>
+            </div>
+            <div className="w-full lg:w-48 h-32 bg-zinc-800 rounded-3xl overflow-hidden relative border border-white/5">
+              <div className="absolute inset-x-4 bottom-0 h-24 flex items-end gap-2">
+                {[40, 70, 45, 90, 60, 85, 50].map((h, i) => (
+                  <motion.div 
+                    key={i}
+                    initial={{ height: 0 }}
+                    animate={{ height: `${h}%` }}
+                    transition={{ delay: 1 + (i * 0.1) }}
+                    className="flex-1 bg-picpay-500 rounded-t-lg"
+                  />
+                ))}
               </div>
             </div>
           </motion.div>
 
         </div>
-      </div>
 
-      {/* FOOTER */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 pb-8 text-center lg:text-left opacity-30">
-        <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.3em]">
-          SOS Controle &copy; 2024 • Segurança Bancária Certificada
-        </p>
+        {/* FOOTER */}
+        <div className="mt-20 pb-12 w-full flex flex-col md:flex-row items-center justify-between gap-6 opacity-30">
+          <div className="flex items-center gap-3">
+            <MainLogo size={20} className="text-zinc-500" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500">SOS Controle &copy; 2024</span>
+          </div>
+          <div className="flex items-center gap-8">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hover:text-picpay-500 cursor-pointer transition-colors">Privacidade</span>
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hover:text-picpay-500 cursor-pointer transition-colors">Segurança</span>
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hover:text-picpay-500 cursor-pointer transition-colors">Ajuda</span>
+          </div>
+        </div>
+
       </div>
     </div>
   );

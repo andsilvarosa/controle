@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Smartphone, Loader2, AlertTriangle, Fingerprint, Eye, EyeOff, Check, Sparkles, LayoutDashboard, Send, KeyRound, ShieldCheck, Zap, Bell, Activity, TrendingUp, Shield, LockIcon, Info } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Smartphone, Loader2, AlertTriangle, Fingerprint, Eye, EyeOff, Check, Sparkles, LayoutDashboard, Send, KeyRound, ShieldCheck, Zap, Bell, Activity, TrendingUp, Shield, LockIcon, Info, Sun, Moon } from 'lucide-react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { MainLogo } from '../components/UI/MainLogo';
 
 export const Auth: React.FC = () => {
-  const { login, signup, forgotPassword, resetPassword, isLoading } = useFinanceStore();
+  const { login, signup, forgotPassword, resetPassword, isLoading, theme, toggleTheme } = useFinanceStore();
   const [isLogin, setIsLogin] = useState(true);
   const [isRecovery, setIsRecovery] = useState(false);
   
@@ -172,6 +172,21 @@ export const Auth: React.FC = () => {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#F5F5F5] dark:bg-brand-dark selection:bg-picpay-500 selection:text-white overflow-x-hidden transition-colors duration-500 font-sans p-4 lg:p-8">
       
+      {/* Botão de Alternância de Tema */}
+      <motion.button
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        onClick={toggleTheme}
+        className="fixed top-6 right-6 p-3.5 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-black/[0.05] dark:border-white/[0.05] text-zinc-500 dark:text-zinc-400 hover:scale-110 active:scale-95 transition-all z-50 group"
+        title={theme === 'light' ? 'Mudar para modo escuro' : 'Mudar para modo claro'}
+      >
+        {theme === 'light' ? (
+          <Moon size={20} className="group-hover:text-picpay-500 transition-colors" />
+        ) : (
+          <Sun size={20} className="group-hover:text-picpay-500 transition-colors" />
+        )}
+      </motion.button>
+
       {/* Background Decorativo Sutil */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-picpay-500/5 rounded-full blur-[120px]" />

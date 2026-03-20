@@ -503,15 +503,15 @@ export const Auth: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
-            className="md:col-span-2 bg-brand-dark p-8 rounded-[40px] shadow-2xl flex flex-col lg:flex-row items-center gap-8 group hover:shadow-picpay-500/10 transition-all"
+            className="md:col-span-2 bg-white dark:bg-zinc-900 p-8 rounded-[40px] border border-black/[0.02] dark:border-white/[0.05] shadow-sm flex flex-col lg:flex-row items-center gap-8 group hover:shadow-xl transition-all"
           >
             <div className="flex-1">
-              <h4 className="text-xl font-bold text-white mb-2">Relatórios Detalhados</h4>
+              <h4 className="text-xl font-bold text-brand-dark dark:text-white mb-2">Relatórios Detalhados</h4>
               <p className="text-sm text-zinc-400 font-medium leading-relaxed">
                 Visualize sua evolução financeira com gráficos interativos e insights poderosos sobre seu comportamento de consumo.
               </p>
             </div>
-            <div className="w-full lg:w-48 h-32 bg-zinc-800 rounded-3xl overflow-hidden relative border border-white/5">
+            <div className="w-full lg:w-48 h-32 bg-zinc-50 dark:bg-zinc-800 rounded-3xl overflow-hidden relative border border-black/[0.02] dark:border-white/5">
               <div className="absolute inset-x-4 bottom-0 h-24 flex items-end gap-2">
                 {[40, 70, 45, 90, 60, 85, 50].map((h, i) => (
                   <motion.div 

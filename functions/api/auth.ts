@@ -32,7 +32,8 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       url.hostname.endsWith(".run.app") || // AI Studio Previews
       url.hostname.endsWith(".pages.dev") || // Cloudflare Pages
       url.hostname === "localhost" || // Desenvolvimento local
-      url.hostname.endsWith(".sostec.top") // Seu domínio customizado
+      url.hostname === "sostec.top" || // Domínio principal
+      url.hostname.endsWith(".sostec.top") // Subdomínios customizados
     );
   };
   

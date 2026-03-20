@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Smartphone, Loader2, AlertTriangle, Fingerprint, Eye, EyeOff, Check, Sparkles, LayoutDashboard, Send, KeyRound, ShieldCheck, Zap, Bell, Activity, TrendingUp, Shield, LockIcon, Info, Sun, Moon } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Smartphone, Loader2, AlertTriangle, Fingerprint, Eye, EyeOff, Check, Sparkles, LayoutDashboard, Send, KeyRound, ShieldCheck, Zap, Bell, Activity, TrendingUp, Shield, LockIcon, Info, Sun, Moon, X } from 'lucide-react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { MainLogo } from '../components/UI/MainLogo';
 
@@ -8,6 +8,7 @@ export const Auth: React.FC = () => {
   const { login, signup, forgotPassword, resetPassword, isLoading, theme, toggleTheme } = useFinanceStore();
   const [isLogin, setIsLogin] = useState(true);
   const [isRecovery, setIsRecovery] = useState(false);
+  const [activeModal, setActiveModal] = useState<'privacy' | 'security' | 'help' | null>(null);
   
   // 2FA Flow
   const [require2FA, setRequire2FA] = useState(false);
@@ -585,17 +586,109 @@ export const Auth: React.FC = () => {
         </div>
 
         {/* FOOTER */}
-        <div className="mt-20 pb-12 w-full flex flex-col md:flex-row items-center justify-between gap-6 opacity-30">
+        <div className="mt-20 pb-12 w-full flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <MainLogo size={20} className="text-zinc-500" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500">SOS Controle &copy; 2024</span>
+            <MainLogo size={20} className="text-zinc-400 dark:text-zinc-600" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400 dark:text-zinc-500">SOS Controle &copy; 2024</span>
           </div>
           <div className="flex items-center gap-8">
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hover:text-picpay-500 cursor-pointer transition-colors">Privacidade</span>
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hover:text-picpay-500 cursor-pointer transition-colors">Segurança</span>
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest hover:text-picpay-500 cursor-pointer transition-colors">Ajuda</span>
+            <button 
+              onClick={() => setActiveModal('privacy')}
+              className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest hover:text-picpay-500 cursor-pointer transition-colors"
+            >
+              Privacidade
+            </button>
+            <button 
+              onClick={() => setActiveModal('security')}
+              className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest hover:text-picpay-500 cursor-pointer transition-colors"
+            >
+              Segurança
+            </button>
+            <button 
+              onClick={() => setActiveModal('help')}
+              className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest hover:text-picpay-500 cursor-pointer transition-colors"
+            >
+              Ajuda
+            </button>
           </div>
         </div>
+
+        {/* MODAL OVERLAY */}
+        <AnimatePresence>
+          {activeModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-8">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setActiveModal(null)}
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              />
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-[32px] shadow-2xl overflow-hidden border border-black/[0.05] dark:border-white/[0.05]"
+              >
+                <div className="p-8 lg:p-10">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-picpay-50 dark:bg-picpay-500/10 rounded-2xl text-picpay-500">
+                        {activeModal === 'privacy' && <Shield size={24} />}
+                        {activeModal === 'security' && <ShieldCheck size={24} />}
+                        {activeModal === 'help' && <Info size={24} />}
+                      </div>
+                      <h3 className="text-xl font-bold text-brand-dark dark:text-white">
+                        {activeModal === 'privacy' && "Privacidade e Dados"}
+                        {activeModal === 'security' && "Segurança e Proteção"}
+                        {activeModal === 'help' && "Central de Ajuda"}
+                      </h3>
+                    </div>
+                    <button 
+                      onClick={() => setActiveModal(null)}
+                      className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4 text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed font-medium">
+                    {activeModal === 'privacy' && (
+                      <>
+                        <p>Nosso compromisso com seus dados é total. No <span className="text-picpay-500 font-bold">SOS Controle</span>, acreditamos que sua privacidade não tem preço.</p>
+                        <p>Não vendemos, não alugamos e não compartilhamos suas informações pessoais ou financeiras com terceiros para fins publicitários.</p>
+                        <p>Operamos em total conformidade com a <span className="text-brand-dark dark:text-white font-bold">LGPD (Lei Geral de Proteção de Dados)</span>, garantindo que você tenha controle total sobre seus dados e a transparência necessária sobre como eles são utilizados para melhorar sua experiência.</p>
+                      </>
+                    )}
+                    {activeModal === 'security' && (
+                      <>
+                        <p>Sua segurança é o pilar central da nossa plataforma. Utilizamos uma infraestrutura de nível bancário para proteger seu patrimônio digital.</p>
+                        <p>Nossa estrutura conta com <span className="text-picpay-500 font-bold">travas robustas contra ataques de força bruta</span> e sistemas de detecção de intrusão em tempo real.</p>
+                        <p>Implementamos validação rigorosa em todas as camadas, autenticação de dois fatores (2FA) e criptografia de ponta a ponta, garantindo que apenas você tenha acesso às suas informações sensíveis.</p>
+                      </>
+                    )}
+                    {activeModal === 'help' && (
+                      <>
+                        <p>Precisa de uma mãozinha? Estamos aqui para você!</p>
+                        <p>Nossa central de ajuda conta com tutoriais detalhados e uma equipe de suporte humanizado pronta para tirar qualquer dúvida sobre a plataforma.</p>
+                        <p>Você pode entrar em contato conosco pelo e-mail <span className="text-picpay-500 font-bold">suporte@soscontrole.com.br</span> ou através do chat disponível dentro do seu painel de controle após o login.</p>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="mt-10">
+                    <button 
+                      onClick={() => setActiveModal(null)}
+                      className="w-full py-4 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all"
+                    >
+                      Entendido
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
       </div>
     </div>

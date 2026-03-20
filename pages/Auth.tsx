@@ -671,7 +671,7 @@ export const Auth: React.FC = () => {
                       <>
                         <p>Precisa de uma mãozinha? Estamos aqui para você!</p>
                         <p>Nossa central de ajuda conta com tutoriais detalhados e uma equipe de suporte humanizado pronta para tirar qualquer dúvida sobre a plataforma.</p>
-                        <p>Você pode entrar em contato conosco pelo e-mail <span className="text-picpay-500 font-bold">suporte@soscontrole.com.br</span> ou através do chat disponível dentro do seu painel de controle após o login.</p>
+                        <p>Você pode entrar em contato conosco pelo e-mail <span className="text-picpay-500 font-bold">suporte@sostec.top</span> ou através do chat disponível dentro do seu painel de controle após o login.</p>
                       </>
                     )}
                   </div>

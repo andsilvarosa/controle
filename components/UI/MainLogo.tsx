@@ -15,24 +15,27 @@ export const MainLogo: React.FC<MainLogoProps> = ({ className = "", size = 64 })
         viewBox="0 0 100 100" 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
-        className="drop-shadow-2xl"
+        className="drop-shadow-xl"
       >
-        {/* Círculo de Fundo Estilo PicPay */}
-        <circle cx="50" cy="50" r="48" fill="#21C25E" />
-        <circle cx="50" cy="50" r="40" stroke="white" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" />
+        {/* Fundo Squircle Branco */}
+        <rect width="100" height="100" rx="32" fill="white" />
+        
+        {/* Círculo de Fundo Verde PicPay */}
+        <circle cx="50" cy="50" r="36" fill="#11C76F" />
+        <circle cx="50" cy="50" r="32" stroke="white" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.2" />
         
         {/* Letra S Estilizada (SOS) */}
         <path 
-          d="M35 35C35 30 40 25 50 25C60 25 65 30 65 35C65 40 60 42 50 45C40 48 35 50 35 55C35 60 40 65 50 65C60 65 65 60 65 55" 
+          d="M38 45c0-4 4-7 12-7s12 3 12 7c0 4-4 5.5-12 8s-12 4-12 8c0 4 4 7 12 7s12-3 12-7" 
           stroke="white" 
-          strokeWidth="10" 
+          strokeWidth="7" 
           strokeLinecap="round" 
           strokeLinejoin="round"
+          fill="none"
         />
         
         {/* Detalhe de Moeda/Brilho */}
-        <circle cx="75" cy="25" r="8" fill="white" />
-        <path d="M75 20V30M70 25H80" stroke="#21C25E" strokeWidth="2" strokeLinecap="round"/>
+        <circle cx="68" cy="32" r="5" fill="white" />
       </svg>
     </div>
   );

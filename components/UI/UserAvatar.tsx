@@ -15,7 +15,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ avatar, className = "w-1
     const IconComponent = (Icons as any)[iconName] || Icons.User;
     
     const colorMap: Record<string, string> = {
-      teal: 'bg-teal-500',
+      teal: 'bg-brand-green',
       blue: 'bg-blue-500',
       purple: 'bg-purple-500',
       amber: 'bg-amber-500',
@@ -30,7 +30,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ avatar, className = "w-1
     };
 
     return (
-      <div className={`${className} ${colorMap[colorName] || 'bg-slate-400'} flex items-center justify-center text-white rounded-full shadow-inner`}>
+      <div className={`${className} ${colorMap[colorName] || 'bg-brand-green'} flex items-center justify-center text-white rounded-full shadow-inner border-2 border-white/10`}>
         <IconComponent size={size} />
       </div>
     );
@@ -40,7 +40,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({ avatar, className = "w-1
   return (
     <img 
       src={avatar} 
-      className={`${className} rounded-full object-cover border-2 border-white shadow-sm`} 
+      className={`${className} rounded-full object-cover border-2 border-brand-green/20 shadow-sm`} 
       alt="User Avatar" 
       onError={(e) => {
         (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/fallback/200/200';

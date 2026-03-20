@@ -15,39 +15,24 @@ export const MainLogo: React.FC<MainLogoProps> = ({ className = "", size = 64 })
         viewBox="0 0 100 100" 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
-        className="drop-shadow-xl"
+        className="drop-shadow-2xl"
       >
-        {/* Moedas de Fundo */}
-        <circle cx="35" cy="35" r="22" fill="white" stroke="#225b64" strokeWidth="4"/>
-        <circle cx="35" cy="35" r="16" stroke="#225b64" strokeWidth="2.5"/>
-        <path d="M35 28v14M31 32h8M31 38h8" stroke="#225b64" strokeWidth="3" strokeLinecap="round"/>
-
-        <circle cx="28" cy="58" r="22" fill="white" stroke="#225b64" strokeWidth="4"/>
-        <circle cx="28" cy="58" r="16" stroke="#225b64" strokeWidth="2.5"/>
-        <path d="M28 51v14M24 55h8M24 61h8" stroke="#225b64" strokeWidth="3" strokeLinecap="round"/>
-
-        <circle cx="45" cy="78" r="22" fill="white" stroke="#225b64" strokeWidth="4"/>
-        <circle cx="45" cy="78" r="16" stroke="#225b64" strokeWidth="2.5"/>
-        <path d="M45 71v14M41 75h8M41 81h8" stroke="#225b64" strokeWidth="3" strokeLinecap="round"/>
-
-        {/* Calculadora */}
-        <rect x="48" y="28" width="44" height="60" rx="6" fill="white" stroke="#225b64" strokeWidth="5"/>
+        {/* Círculo de Fundo Estilo PicPay */}
+        <circle cx="50" cy="50" r="48" fill="#21C25E" />
+        <circle cx="50" cy="50" r="40" stroke="white" strokeWidth="2" strokeDasharray="4 4" opacity="0.3" />
         
-        {/* Tela da Calculadora */}
-        <rect x="55" y="36" width="30" height="14" rx="2" fill="#88b0b5" stroke="#225b64" strokeWidth="2.5"/>
+        {/* Letra S Estilizada (SOS) */}
+        <path 
+          d="M35 35C35 30 40 25 50 25C60 25 65 30 65 35C65 40 60 42 50 45C40 48 35 50 35 55C35 60 40 65 50 65C60 65 65 60 65 55" 
+          stroke="white" 
+          strokeWidth="10" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        />
         
-        {/* Botões da Calculadora */}
-        <rect x="55" y="56" width="6" height="6" rx="1.5" fill="white" stroke="#225b64" strokeWidth="2.5"/>
-        <rect x="67" y="56" width="6" height="6" rx="1.5" fill="white" stroke="#225b64" strokeWidth="2.5"/>
-        <rect x="79" y="56" width="6" height="6" rx="1.5" fill="white" stroke="#225b64" strokeWidth="2.5"/>
-        
-        <rect x="55" y="68" width="6" height="6" rx="1.5" fill="white" stroke="#225b64" strokeWidth="2.5"/>
-        <rect x="67" y="68" width="6" height="6" rx="1.5" fill="white" stroke="#225b64" strokeWidth="2.5"/>
-        <rect x="79" y="68" width="6" height="6" rx="1.5" fill="white" stroke="#225b64" strokeWidth="2.5"/>
-        
-        <rect x="55" y="80" width="6" height="6" rx="1.5" fill="white" stroke="#225b64" strokeWidth="2.5"/>
-        <rect x="67" y="80" width="6" height="6" rx="1.5" fill="white" stroke="#225b64" strokeWidth="2.5"/>
-        <rect x="79" y="80" width="6" height="6" rx="1.5" fill="white" stroke="#225b64" strokeWidth="2.5"/>
+        {/* Detalhe de Moeda/Brilho */}
+        <circle cx="75" cy="25" r="8" fill="white" />
+        <path d="M75 20V30M70 25H80" stroke="#21C25E" strokeWidth="2" strokeLinecap="round"/>
       </svg>
     </div>
   );

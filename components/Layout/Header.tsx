@@ -82,35 +82,35 @@ export const Header: React.FC = () => {
   }, [transactions]);
 
   const renderNotificationContent = () => (
-    <div className="overflow-y-auto p-4 space-y-3 custom-scrollbar bg-white dark:bg-slate-900 flex-1">
+    <div className="overflow-y-auto p-4 space-y-3 custom-scrollbar bg-white dark:bg-brand-dark flex-1">
       {notifications.length > 0 ? (
         notifications.map(n => {
           const StatusIcon = n.status.icon;
           
           return (
-            <div key={n.id} className="group relative bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-teal-100 dark:hover:border-teal-900 transition-all">
+            <div key={n.id} className="group relative bg-white dark:bg-brand-dark/50 p-4 rounded-3xl border border-brand-gray/10 dark:border-brand-dark shadow-sm hover:shadow-md hover:border-brand-green/30 transition-all">
               <div className={`absolute left-0 top-4 bottom-4 w-1 rounded-r-full ${
                   n.status.label === 'Vencido' ? 'bg-red-500' : 
                   n.status.label === 'Vence Hoje' ? 'bg-orange-500' : 
-                  n.status.label === 'Vence Amanhã' ? 'bg-yellow-500' : 'bg-blue-500'
+                  n.status.label === 'Vence Amanhã' ? 'bg-yellow-500' : 'bg-brand-green'
               }`} />
               
               <div className="ml-3">
                 <div className="flex justify-between items-start mb-1 gap-2">
-                  <span className="font-bold text-slate-800 dark:text-white text-sm line-clamp-1">{n.description}</span>
+                  <span className="font-black text-brand-dark dark:text-white text-sm line-clamp-1 tracking-tight">{n.description}</span>
                   <span className={`text-xs font-black whitespace-nowrap ${
                       n.status.label === 'Vencido' ? 'text-red-600 dark:text-red-400' : 
-                      n.status.label === 'Vence Hoje' ? 'text-orange-600 dark:text-orange-400' : 'text-slate-600 dark:text-slate-400'
+                      n.status.label === 'Vence Hoje' ? 'text-orange-600 dark:text-orange-400' : 'text-brand-dark/60 dark:text-brand-gray/60'
                   } ${isPrivacyMode ? 'blur-sm select-none' : ''}`}>
                     {isPrivacyMode ? 'R$ •••' : `R$ ${n.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center justify-between mt-2 gap-2">
-                    <span className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 border dark:bg-opacity-20 ${n.status.style}`}>
+                    <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 border dark:bg-opacity-20 ${n.status.style}`}>
                         <StatusIcon size={12} />
                         {n.status.label}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-bold bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-lg">
+                    <span className="text-[10px] text-brand-dark/40 dark:text-brand-gray/40 font-black bg-brand-gray/50 dark:bg-brand-dark/80 px-2 py-1 rounded-lg uppercase tracking-tighter">
                         {n.dueDate.split('-').reverse().join('/')}
                     </span>
                 </div>
@@ -119,12 +119,12 @@ export const Header: React.FC = () => {
           );
         })
       ) : (
-        <div className="py-12 text-center text-slate-400 dark:text-slate-600 flex flex-col items-center">
-          <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-            <Bell size={24} className="opacity-20" />
+        <div className="py-12 text-center text-brand-dark/30 dark:text-brand-gray/30 flex flex-col items-center">
+          <div className="w-20 h-20 bg-brand-gray/50 dark:bg-brand-dark/50 rounded-full flex items-center justify-center mb-4 border border-brand-gray/10 dark:border-brand-dark">
+            <Bell size={28} className="opacity-20" />
           </div>
-          <p className="font-bold text-slate-600 dark:text-slate-300">Tudo em dia</p>
-          <p className="text-xs mt-1 max-w-[200px]">Nenhum vencimento encontrado para os próximos 3 dias.</p>
+          <p className="font-black text-brand-dark/60 dark:text-brand-gray/60 uppercase tracking-widest text-sm">Tudo em dia</p>
+          <p className="text-[10px] mt-2 max-w-[200px] font-black uppercase tracking-tighter opacity-50">Nenhum vencimento encontrado para os próximos 3 dias.</p>
         </div>
       )}
     </div>
@@ -132,26 +132,26 @@ export const Header: React.FC = () => {
 
   return (
     <>
-    <header className="sticky top-0 z-[40] bg-[#f8fafc]/80 dark:bg-[#020617]/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 px-4 lg:px-10 py-4 flex items-center justify-between transition-all duration-300">
+    <header className="sticky top-0 z-[40] bg-brand-gray/80 dark:bg-black/80 backdrop-blur-xl border-b border-brand-gray/20 dark:border-brand-dark/50 px-4 lg:px-10 py-4 flex items-center justify-between transition-all duration-300">
       <div className="flex items-center gap-4 lg:gap-6">
         <button 
           onClick={() => setMobileMenuOpen(true)}
-          className="lg:hidden p-2 hover:bg-white dark:hover:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 shadow-sm border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all"
+          className="lg:hidden p-2.5 hover:bg-white dark:hover:bg-brand-dark rounded-2xl text-brand-dark/50 dark:text-brand-gray/50 shadow-sm border border-brand-gray/10 dark:border-brand-dark transition-all"
         >
-          <Menu size={20} />
+          <Menu size={22} />
         </button>
         
         <div className="flex flex-col">
-          <div className="flex items-center gap-2 text-slate-400 text-[10px] lg:text-xs font-bold uppercase tracking-widest mb-0.5">
-            <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-teal-500 animate-pulse" />
+          <div className="flex items-center gap-2 text-brand-dark/40 dark:text-brand-gray/40 text-[10px] lg:text-xs font-black uppercase tracking-[0.2em] mb-0.5">
+            <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-brand-green animate-pulse" />
             <span className="truncate max-w-[120px] lg:max-w-none">{viewTitles[view] || 'SOS Controle'}</span>
           </div>
-          <h1 className="text-lg lg:text-2xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-lg lg:text-2xl font-black text-brand-dark dark:text-white tracking-tight flex items-center gap-2">
             {view === 'dashboard' ? (
               <div className="flex items-center gap-1">
                 <span className="hidden sm:inline">{greeting},</span> 
-                <span className="text-teal-600 dark:text-teal-400 truncate max-w-[100px] sm:max-w-none">{user.name.split(' ')[0]}</span>
-                <Sparkles size={16} className="text-yellow-500 fill-yellow-500 flex-shrink-0" />
+                <span className="text-brand-green truncate max-w-[100px] sm:max-w-none">{user.name.split(' ')[0]}</span>
+                <Sparkles size={18} className="text-brand-green fill-brand-green flex-shrink-0" />
               </div>
             ) : (
                 <span className="truncate">{viewTitles[view]}</span>
@@ -160,36 +160,36 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-1 lg:gap-2 p-1.5 bg-white/60 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 backdrop-blur-md rounded-full shadow-sm">
+      <div className="flex items-center gap-1 lg:gap-2 p-1.5 bg-white/60 dark:bg-brand-dark/60 border border-brand-gray/20 dark:border-brand-dark/50 backdrop-blur-md rounded-full shadow-sm">
         
         <button
           onClick={toggleTheme}
-          className="p-2 lg:p-2.5 rounded-full hover:bg-white dark:hover:bg-slate-700 text-slate-400 dark:text-slate-500 hover:text-indigo-500 dark:hover:text-indigo-400 transition-all"
+          className="p-2.5 lg:p-3 rounded-full hover:bg-white dark:hover:bg-brand-dark text-brand-dark/30 dark:text-brand-gray/30 hover:text-brand-green dark:hover:text-brand-green transition-all"
           title={theme === 'dark' ? "Modo Claro" : "Modo Escuro"}
         >
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
 
         <button
           onClick={togglePrivacyMode}
-          className="p-2 lg:p-2.5 rounded-full hover:bg-white dark:hover:bg-slate-700 text-slate-400 dark:text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-all"
+          className="p-2.5 lg:p-3 rounded-full hover:bg-white dark:hover:bg-brand-dark text-brand-dark/30 dark:text-brand-gray/30 hover:text-brand-green dark:hover:text-brand-green transition-all"
           title={isPrivacyMode ? "Mostrar Valores" : "Ocultar Valores"}
         >
-          {isPrivacyMode ? <EyeOff size={18} /> : <Eye size={18} />}
+          {isPrivacyMode ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
 
         <div className="relative">
           <button 
             onClick={() => setIsNotifOpen(!isNotifOpen)}
-            className={`relative p-2 lg:p-2.5 rounded-full transition-all duration-300 border ${
+            className={`relative p-2.5 lg:p-3 rounded-full transition-all duration-300 border ${
                 isNotifOpen 
-                ? 'bg-slate-800 text-white border-slate-800 shadow-lg scale-105' 
-                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border-transparent hover:bg-white dark:hover:bg-slate-600 hover:text-teal-600'
+                ? 'bg-brand-green text-white border-brand-green shadow-xl scale-105' 
+                : 'bg-brand-gray dark:bg-brand-dark/50 text-brand-dark/30 dark:text-brand-gray/30 border-transparent hover:bg-white dark:hover:bg-brand-dark hover:text-brand-green'
             }`}
           >
-            <Bell size={18} />
+            <Bell size={20} />
             {notifications.length > 0 && (
-              <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 border-2 border-white dark:border-slate-800 rounded-full animate-bounce"></span>
+              <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-brand-dark rounded-full animate-bounce"></span>
             )}
           </button>
 
@@ -203,16 +203,16 @@ export const Header: React.FC = () => {
                     className="
                         hidden lg:flex flex-col
                         absolute top-full right-0 mt-4 w-[400px] max-h-[450px] z-[50]
-                        bg-white dark:bg-slate-900/95 backdrop-blur-2xl rounded-[24px] shadow-2xl border border-slate-100 dark:border-slate-700 ring-1 ring-black/5 overflow-hidden
+                        bg-white dark:bg-brand-dark/95 backdrop-blur-2xl rounded-4xl shadow-2xl border border-brand-gray/10 dark:border-brand-dark ring-1 ring-black/5 overflow-hidden
                     "
                   >
-                    <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
+                    <div className="p-5 border-b border-brand-gray/10 dark:border-brand-dark flex items-center justify-between bg-brand-gray/50 dark:bg-brand-dark/50 shrink-0">
                       <div>
-                        <h3 className="font-bold text-slate-800 dark:text-white text-base">Notificações</h3>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Alertas de Vencimento</p>
+                        <h3 className="font-black text-brand-dark dark:text-white text-base uppercase tracking-widest">Notificações</h3>
+                        <p className="text-[10px] text-brand-dark/40 dark:text-brand-gray/40 font-black uppercase tracking-tighter">Alertas de Vencimento</p>
                       </div>
-                      <button onClick={() => setIsNotifOpen(false)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-400 transition-colors">
-                        <X size={18} />
+                      <button onClick={() => setIsNotifOpen(false)} className="p-2.5 hover:bg-brand-gray dark:hover:bg-brand-dark rounded-2xl text-brand-dark/30 transition-colors">
+                        <X size={20} />
                       </button>
                     </div>
                     
@@ -238,15 +238,15 @@ export const Header: React.FC = () => {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-24 left-4 right-4 mx-auto max-w-md z-[9999] bg-white dark:bg-slate-900 rounded-[24px] shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col max-h-[75vh] lg:hidden"
+            className="fixed top-24 left-4 right-4 mx-auto max-w-md z-[9999] bg-white dark:bg-brand-dark rounded-4xl shadow-2xl border border-brand-gray/10 dark:border-brand-dark overflow-hidden flex flex-col max-h-[75vh] lg:hidden"
          >
-            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
+            <div className="p-5 border-b border-brand-gray/10 dark:border-brand-dark flex items-center justify-between bg-brand-gray/50 dark:bg-brand-dark/50 shrink-0">
                 <div>
-                <h3 className="font-bold text-slate-800 dark:text-white text-base">Notificações</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium">Alertas de Vencimento</p>
+                <h3 className="font-black text-brand-dark dark:text-white text-base uppercase tracking-widest">Notificações</h3>
+                <p className="text-[10px] text-brand-dark/40 dark:text-brand-gray/40 font-black uppercase tracking-tighter">Alertas de Vencimento</p>
                 </div>
-                <button onClick={() => setIsNotifOpen(false)} className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full text-slate-400 transition-colors">
-                <X size={18} />
+                <button onClick={() => setIsNotifOpen(false)} className="p-2.5 hover:bg-brand-gray dark:hover:bg-brand-dark rounded-2xl text-brand-dark/30 transition-colors">
+                <X size={20} />
                 </button>
             </div>
             {renderNotificationContent()}

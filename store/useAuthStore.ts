@@ -28,7 +28,8 @@ interface AuthState {
 // 🎫 O COMUNICADOR DE AUTENTICAÇÃO
 const api = async (endpoint: string, method: string, body?: any) => {
   try {
-    const url = `/api/${endpoint}`;
+    const API_BASE = import.meta.env.VITE_API_URL || '';
+    const url = `${API_BASE}/api/${endpoint}`;
     const token = localStorage.getItem('sos_token');
     const headers: any = { 'Content-Type': 'application/json' };
     

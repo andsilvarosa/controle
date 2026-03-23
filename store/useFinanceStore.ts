@@ -106,7 +106,8 @@ interface FinanceState {
 // 🎫 O APP AGORA SABE ENVIAR O CRACHÁ NAS REQUISIÇÕES
 const api = async (endpoint: string, method: string, body?: any) => {
   try {
-    const url = `/api/${endpoint}`;
+    const API_BASE = import.meta.env.VITE_API_URL || '';
+    const url = `${API_BASE}/api/${endpoint}`;
     
     // Pega o token salvo no navegador (mantido por compatibilidade)
     const token = localStorage.getItem('sos_token');

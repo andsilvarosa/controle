@@ -5,6 +5,9 @@ import { useFinanceStore } from '../store/useFinanceStore';
 import { motion } from 'framer-motion';
 import * as XLSX from 'xlsx';
 import { UserAvatar } from '../components/UI/UserAvatar';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 export const Settings: React.FC = () => {
   const { user, categories, rules, setActiveModal } = useFinanceStore();
@@ -20,7 +23,7 @@ export const Settings: React.FC = () => {
   const creationDate = user.createdAt ? new Date(user.createdAt) : new Date();
   const formattedCreation = creationDate.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
 
-  const handleExportSettings = () => {
+  const handleExportSettings = async () => {
     // Preparar dados de categorias
     const catData = categories.map(c => ({
       Nome: c.name,
@@ -45,8 +48,28 @@ export const Settings: React.FC = () => {
     XLSX.utils.book_append_sheet(wb, wsCat, "Categorias");
     XLSX.utils.book_append_sheet(wb, wsRules, "Regras de Automação");
 
-    // Salvar arquivo
-    XLSX.writeFile(wb, "soscontrole_backup_configuracoes.xlsx");
+    const fileName = "soscontrole_backup_configuracoes.xlsx";
+
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+        const result = await Filesystem.writeFile({
+          path: fileName,
+          data: base64,
+          directory: Directory.Cache
+        });
+        await Share.share({
+          title: 'Exportar Backup de Configurações',
+          url: result.uri,
+          dialogTitle: 'Compartilhar Backup'
+        });
+      } else {
+        XLSX.writeFile(wb, fileName);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Erro ao exportar backup de configurações.");
+    }
   };
 
   const handleAction = (id: string) => {

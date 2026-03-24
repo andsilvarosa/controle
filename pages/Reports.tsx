@@ -21,6 +21,9 @@ import { Download, Upload, TrendingUp, Activity, PieChart, ChevronLeft, ChevronR
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFinanceStore } from '../store/useFinanceStore';
 import * as XLSX from 'xlsx';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 const COLORS = ['#14b8a6', '#ef4444', '#8b5cf6', '#f59e0b', '#3b82f6', '#ec4899', '#6366f1', '#84cc16'];
 
@@ -126,7 +129,7 @@ export const Reports: React.FC = () => {
     return result;
   }, [monthlyTransactions, selectedDate]);
 
-  const handleExportXLS = () => {
+  const handleExportXLS = async () => {
     if (monthlyTransactions.length === 0) {
       alert("Não há lançamentos neste mês para exportar.");
       return;
@@ -144,7 +147,28 @@ export const Reports: React.FC = () => {
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(exportData);
     XLSX.utils.book_append_sheet(wb, ws, "Relatorio_Mensal");
-    XLSX.writeFile(wb, `Relatorio_${selectedDate.getFullYear()}_${selectedDate.getMonth()+1}.xlsx`);
+    const fileName = `Relatorio_${selectedDate.getFullYear()}_${selectedDate.getMonth()+1}.xlsx`;
+
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+        const result = await Filesystem.writeFile({
+          path: fileName,
+          data: base64,
+          directory: Directory.Cache
+        });
+        await Share.share({
+          title: `Exportar ${fileName}`,
+          url: result.uri,
+          dialogTitle: 'Compartilhar Relatório'
+        });
+      } else {
+        XLSX.writeFile(wb, fileName);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao exportar arquivo de relatório.");
+    }
   };
 
   const handleImportClick = () => {

@@ -1,0 +1,29 @@
+{
+  "name": "bank-notification-listener",
+  "version": "1.0.0",
+  "description": "Capacitor Plugin to listen Android push notifications from Banks",
+  "main": "dist/plugin.cjs.js",
+  "module": "dist/plugin.js",
+  "types": "dist/esm/index.d.ts",
+  "unpkg": "dist/plugin.js",
+  "files": [
+    "android/src/main/",
+    "android/build.gradle",
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "capacitor": {
+    "android": {
+      "src": "android"
+    }
+  },
+  "peerDependencies": {
+    "@capacitor/core": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/core": "^6.0.0",
+    "typescript": "^5.0.0"
+  }
+}

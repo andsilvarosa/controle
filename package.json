@@ -12,7 +12,11 @@
     "type-check": "tsc --noEmit"
   },
 "dependencies": {
+  "bank-notification-listener": "file:plugins/bank-notification-listener",
   "@capacitor/android": "^6.0.0",
+  "@capacitor/local-notifications": "^6.0.0",
+  "@capacitor/filesystem": "^6.0.0",
+  "@capacitor/share": "^6.0.0",
   "@capacitor/core": "^6.0.0",
   "@neondatabase/serverless": "^0.9.0",
   "@tsndr/cloudflare-worker-jwt": "^3.1.8",

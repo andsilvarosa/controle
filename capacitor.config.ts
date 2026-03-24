@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.sos.controle',
-  appName: 'SOS Controle',
+  appName: 'SOS Controle Teste',
   webDir: 'dist',
   bundledWebRuntime: false,
 };

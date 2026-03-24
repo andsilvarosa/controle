@@ -30,7 +30,7 @@ jobs:
 
       - name: Build Web Application
         env:
-          VITE_API_URL: https://sos-controle-app.pages.dev
+          VITE_API_URL: https://controles.pages.dev
         run: npm run build
 
       - name: Generate Android Project

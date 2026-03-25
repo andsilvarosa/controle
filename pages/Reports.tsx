@@ -401,7 +401,7 @@ export const Reports: React.FC = () => {
         type="file" 
         ref={fileInputRef} 
         onChange={handleFileChange} 
-        accept=".xlsx, .xls" 
+        accept=".xlsx, .xls, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" 
         className="hidden" 
       />
       

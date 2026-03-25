@@ -10,44 +10,53 @@ const matchers = [
     bank: 'Nubank',
     packages: ['com.nu.production'],
     patterns: [
-      { regex: /Compra aprovada no seu Nubank.*R\$\s?([\d.,]+)/i, type: 'expense' },
-      { regex: /Transferência recebida.*R\$\s?([\d.,]+)/i, type: 'income' },
-      { regex: /Você fez uma transferência.*R\$\s?([\d.,]+)/i, type: 'expense' },
-      { regex: /Pix recebido.*R\$\s?([\d.,]+)/i, type: 'income' }
+      { regex: /Compra aprovada[\s\S]*?R\$\s?([\d.,]+)/i, type: 'expense' },
+      { regex: /Transfer[êe]ncia recebida[\s\S]*?R\$\s?([\d.,]+)/i, type: 'income' },
+      { regex: /Você fez uma transfer[êe]ncia[\s\S]*?R\$\s?([\d.,]+)/i, type: 'expense' },
+      { regex: /Pix recebido[\s\S]*?R\$\s?([\d.,]+)/i, type: 'income' }
     ]
   },
   {
     bank: 'Itaú',
     packages: ['com.itau'],
     patterns: [
-      { regex: /Compra aprovada.*R\$\s?([\d.,]+)/i, type: 'expense' },
-      { regex: /Transferência recebida.*R\$\s?([\d.,]+)/i, type: 'income' },
-      { regex: /Pix de R\$\s?([\d.,]+).*recebido/i, type: 'income' },
-      { regex: /Pix de R\$\s?([\d.,]+).*realizado/i, type: 'expense' }
+      { regex: /Compra aprovada[\s\S]*?R\$\s?([\d.,]+)/i, type: 'expense' },
+      { regex: /Transfer[êe]ncia recebida[\s\S]*?R\$\s?([\d.,]+)/i, type: 'income' },
+      { regex: /Pix[\s\S]*?R\$\s?([\d.,]+)[\s\S]*?recebido/i, type: 'income' },
+      { regex: /Pix[\s\S]*?R\$\s?([\d.,]+)[\s\S]*?realizado/i, type: 'expense' }
     ]
   },
   {
     bank: 'Santander',
     packages: ['com.santander.app'],
     patterns: [
-      { regex: /Compra aprovada.*R\$\s?([\d.,]+)/i, type: 'expense' },
-      { regex: /Pix .* recebido .* R\$\s?([\d.,]+)/i, type: 'income' }
+      { regex: /Compra aprovada[\s\S]*?R\$\s?([\d.,]+)/i, type: 'expense' },
+      { regex: /Pix[\s\S]*?recebido[\s\S]*?R\$?\s?([\d.,]+)/i, type: 'income' }
     ]
   },
   {
     bank: 'Inter',
     packages: ['br.com.intermedium'],
     patterns: [
-      { regex: /Compra aprovada.*R\$\s?([\d.,]+)/i, type: 'expense' },
-      { regex: /Pix de R\$\s?([\d.,]+) recebido/i, type: 'income' }
+      { regex: /Compra aprovada[\s\S]*?R\$\s?([\d.,]+)/i, type: 'expense' },
+      { regex: /Pix[\s\S]*?R\$\s?([\d.,]+)[\s\S]*?recebido/i, type: 'income' }
     ]
   },
   {
     bank: 'Bradesco',
     packages: ['com.bradesco'],
     patterns: [
-      { regex: /Compra aprovada.*R\$\s?([\d.,]+)/i, type: 'expense' },
-      { regex: /Pix recebido.*R\$\s?([\d.,]+)/i, type: 'income' }
+      { regex: /Compra aprovada[\s\S]*?R\$\s?([\d.,]+)/i, type: 'expense' },
+      { regex: /Pix recebido[\s\S]*?R\$\s?([\d.,]+)/i, type: 'income' }
+    ]
+  },
+  {
+    bank: 'Banco do Brasil',
+    packages: ['br.com.bb.android'],
+    patterns: [
+      { regex: /Pix[\s\S]*?R\$\s?([\d.,]+)[\s\S]*?enviado/i, type: 'expense' },
+      { regex: /Pix[\s\S]*?R\$\s?([\d.,]+)[\s\S]*?recebido/i, type: 'income' },
+      { regex: /Transfer[êe]ncia[\s\S]*?R\$\s?([\d.,]+)/i, type: 'expense' }
     ]
   }
 ];
@@ -75,7 +84,7 @@ export const parseBankNotification = (packageName: string, title: string, text: 
       
       // Fallback pra banco conhecido mas regex não mapeada 100%
       // Dá pra tentar uma genérica se o pacote é de banco
-      const genericMatch = combinedText.match(/(?:compra|pix|transferência).*R\$\s?([\d.,]+)/i);
+      const genericMatch = combinedText.match(/(?:compra|pix|transfer[êe]ncia)[\s\S]*?R\$?\s?([\d.,]+)/i);
       if (genericMatch && genericMatch[1]) {
            const rawAmount = genericMatch[1].replace(/\./g, '').replace(',', '.');
            const amount = parseFloat(rawAmount);

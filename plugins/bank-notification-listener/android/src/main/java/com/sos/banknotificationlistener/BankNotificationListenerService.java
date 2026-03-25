@@ -21,7 +21,8 @@ public class BankNotificationListenerService extends NotificationListenerService
         Notification notification = sbn.getNotification();
         Bundle extras = notification.extras;
 
-        String title = extras.getString(Notification.EXTRA_TITLE, "");
+        CharSequence titleChar = extras.getCharSequence(Notification.EXTRA_TITLE);
+        String title = titleChar != null ? titleChar.toString() : "";
         CharSequence textChar = extras.getCharSequence(Notification.EXTRA_TEXT);
         String text = textChar != null ? textChar.toString() : "";
 

@@ -12,4 +12,7 @@ export class BankNotificationWeb extends WebPlugin implements BankNotificationPl
   async openNotificationSettings(): Promise<void> {
     console.warn('bank-notification-listener only works on Android.');
   }
+  async getPendingNotifications(): Promise<{ notifications: any[] }> {
+    return { notifications: [] };
+  }
 }

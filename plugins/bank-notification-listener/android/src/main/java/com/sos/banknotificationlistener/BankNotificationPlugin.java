@@ -7,9 +7,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.content.SharedPreferences;
+import org.json.JSONArray;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -72,6 +75,23 @@ public class BankNotificationPlugin extends Plugin {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         getContext().startActivity(intent);
         call.resolve();
+    }
+
+    @PluginMethod
+    public void getPendingNotifications(PluginCall call) {
+        try {
+            SharedPreferences prefs = getContext().getSharedPreferences("BankNotifications", Context.MODE_PRIVATE);
+            String pendingStr = prefs.getString("pending_list", "[]");
+            JSArray arr = new JSArray(pendingStr);
+            
+            JSObject ret = new JSObject();
+            ret.put("notifications", arr);
+            call.resolve(ret);
+            
+            prefs.edit().putString("pending_list", "[]").apply();
+        } catch (Exception e) {
+            call.reject("Erro ao recuperar notificacoes", e);
+        }
     }
 
     private boolean isNotificationServiceEnabled() {

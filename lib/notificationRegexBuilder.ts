@@ -31,7 +31,8 @@ const matchers = [
     packages: ['com.santander.app'],
     patterns: [
       { regex: /Compra aprovada[\s\S]*?R\$\s?([\d.,]+)/i, type: 'expense' },
-      { regex: /Pix[\s\S]*?recebido[\s\S]*?R\$?\s?([\d.,]+)/i, type: 'income' }
+      { regex: /Pix[\s\S]*?recebido[\s\S]*?R\$?\s?([\d.,]+)/i, type: 'income' },
+      { regex: /PIX (?:foi )?enviado[\s\S]*?R\$?\s?([\d.,]+)/i, type: 'expense' }
     ]
   },
   {
@@ -57,6 +58,15 @@ const matchers = [
       { regex: /Pix[\s\S]*?R\$\s?([\d.,]+)[\s\S]*?enviado/i, type: 'expense' },
       { regex: /Pix[\s\S]*?R\$\s?([\d.,]+)[\s\S]*?recebido/i, type: 'income' },
       { regex: /Transfer[êe]ncia[\s\S]*?R\$\s?([\d.,]+)/i, type: 'expense' }
+    ]
+  },
+  {
+    bank: 'Mercado Pago',
+    packages: ['com.mercadopago.wallet'],
+    patterns: [
+      { regex: /Pix[\s\S]*?R\$\s?([\d.,]+)[\s\S]*?enviado/i, type: 'expense' },
+      { regex: /Voc[êe] depositou R\$\s?([\d.,]+)/i, type: 'income' },
+      { regex: /dinheiro[\s\S]*?dispon[íi]vel[\s\S]*?R\$\s?([\d.,]+)/i, type: 'income' }
     ]
   }
 ];

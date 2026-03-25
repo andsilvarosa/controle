@@ -31,7 +31,33 @@ export function NotificationManager() {
         // Previne a tela de permissão caso já tenha sido concedida
         setNeedsSystemPermission(false);
 
-        // Setup the Local Android plugin to receive updates
+        // -- PROCESSAR FILA OFFLINE --
+        // Verifica se houve alguma notificação enviada pelo banco enquanto o App estava fechado.
+        try {
+          const missed = await BankNotification.getPendingNotifications();
+          if (missed && missed.notifications && missed.notifications.length > 0) {
+             missed.notifications.forEach((payload: any) => {
+                const parsed = parseBankNotification(payload.packageName, payload.title, payload.text);
+                if (parsed) {
+                   LocalNotifications.schedule({
+                      notifications: [
+                        {
+                          title: 'Lançamento Retido Detectado',
+                          body: `Deseja registrar R$ ${parsed.amount} no ${parsed.bankName}? Tocar para confirmar.`,
+                          id: Math.floor(new Date().getTime() + Math.random() * 10000),
+                          schedule: { at: new Date(Date.now() + 1000) },
+                          extra: parsed
+                        }
+                      ]
+                   });
+                }
+             });
+          }
+        } catch (e) {
+          console.warn("Fila offline (Background) vazia ou indisponível.", e);
+        }
+
+        // Setup the Local Android plugin to receive updates em TEMPO REAL
         listenerRef = await BankNotification.addListener('bankNotificationReceived', (payload) => {
           const parsed = parseBankNotification(payload.packageName, payload.title, payload.text);
           if (parsed) {

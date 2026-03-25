@@ -6,6 +6,10 @@ import android.os.Bundle;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import android.content.Context;
+import android.content.SharedPreferences;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class BankNotificationListenerService extends NotificationListenerService {
 
@@ -33,6 +37,21 @@ public class BankNotificationListenerService extends NotificationListenerService
             intent.putExtra("title", title);
             intent.putExtra("text", text);
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+            // Salvar no buffer nativo para leitura offline
+            try {
+                SharedPreferences prefs = getSharedPreferences("BankNotifications", Context.MODE_PRIVATE);
+                String pending = prefs.getString("pending_list", "[]");
+                JSONArray arr = new JSONArray(pending);
+                JSONObject obj = new JSONObject();
+                obj.put("packageName", packageName);
+                obj.put("title", title);
+                obj.put("text", text);
+                arr.put(obj);
+                prefs.edit().putString("pending_list", arr.toString()).apply();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

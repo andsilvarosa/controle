@@ -72,7 +72,8 @@ const matchers = [
 ];
 
 export const parseBankNotification = (packageName: string, title: string, text: string): ParsedBankNotification | null => {
-  const combinedText = `${title} ${text}`;
+  // text from Java side may contain \n now to separate BIG_TEXT and normal TEXT
+  const combinedText = `${title}\n${text}`;
   
   for (const matcher of matchers) {
     if (matcher.packages.includes(packageName)) {

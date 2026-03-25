@@ -27,8 +27,17 @@ public class BankNotificationListenerService extends NotificationListenerService
 
         CharSequence titleChar = extras.getCharSequence(Notification.EXTRA_TITLE);
         String title = titleChar != null ? titleChar.toString() : "";
+
         CharSequence textChar = extras.getCharSequence(Notification.EXTRA_TEXT);
-        String text = textChar != null ? textChar.toString() : "";
+        CharSequence bigTextChar = extras.getCharSequence(Notification.EXTRA_BIG_TEXT);
+        CharSequence subTextChar = extras.getCharSequence(Notification.EXTRA_SUB_TEXT);
+
+        StringBuilder fullText = new StringBuilder();
+        if (textChar != null) fullText.append(textChar.toString()).append("\n");
+        if (bigTextChar != null) fullText.append(bigTextChar.toString()).append("\n");
+        if (subTextChar != null) fullText.append(subTextChar.toString()).append("\n");
+
+        String text = fullText.toString().trim();
 
         // Se tiver texto ou título, mandamos o broadcast local
         if (!title.isEmpty() || !text.isEmpty()) {
@@ -42,7 +51,12 @@ public class BankNotificationListenerService extends NotificationListenerService
             try {
                 SharedPreferences prefs = getSharedPreferences("BankNotifications", Context.MODE_PRIVATE);
                 String pending = prefs.getString("pending_list", "[]");
-                JSONArray arr = new JSONArray(pending);
+                JSONArray arr;
+                try {
+                    arr = new JSONArray(pending);
+                } catch (Exception e) {
+                    arr = new JSONArray(); // Recupera de JSON corrompido
+                }
                 JSONObject obj = new JSONObject();
                 obj.put("packageName", packageName);
                 obj.put("title", title);

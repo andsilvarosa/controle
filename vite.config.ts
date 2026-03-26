@@ -4,12 +4,6 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   publicDir: 'public',
-  resolve: {
-    alias: {
-      // Resolve o plugin local direto do source TS, sem precisar compilar separadamente
-      'bank-notification-listener': new URL('plugins/bank-notification-listener/src/index.ts', import.meta.url).pathname,
-    }
-  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -21,6 +15,7 @@ export default defineConfig({
           'vendor-react': ['react', 'react-dom', 'framer-motion', 'zustand'],
           'vendor-charts': ['recharts'],
           'vendor-utils': ['xlsx']
+          // 'ui-icons': ['lucide-react'] // Removido para permitir Tree Shaking automático
         }
       }
     }

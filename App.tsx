@@ -10,7 +10,6 @@ import { ProfileModal } from './components/UI/ProfileModal';
 import { SecurityModal } from './components/UI/SecurityModal';
 import { RecurrenceActionModal } from './components/UI/RecurrenceActionModal';
 import { CommandPalette } from './components/UI/CommandPalette';
-import { NotificationManager } from './components/NotificationManager';
 import { Auth } from './pages/Auth'; 
 import { useFinanceStore } from './store/useFinanceStore';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -115,7 +114,6 @@ const App: React.FC = () => {
       </div>
       <FloatingActionButton />
       <CommandPalette /> 
-      <NotificationManager />
       <AnimatePresence>
         <TransactionModal key="transaction-modal" />
         <CategoryModal key="category-modal" />

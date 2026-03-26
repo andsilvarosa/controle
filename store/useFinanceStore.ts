@@ -100,9 +100,6 @@ interface FinanceState {
   updateBudget: (b: Budget) => Promise<void>;
   deleteBudget: (id: string) => Promise<void>;
   
-  findWalletByName: (name: string) => Wallet | undefined;
-  addWalletAsync: (w: Wallet) => Promise<string>;
-
   setUser: (u: UserProfile) => Promise<void>;
 }
 
@@ -806,16 +803,6 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
       set({ wallets: [...get().wallets, w], activeModal: null });
       await api('wallets', 'POST', { action: 'create', wallet: w, userId });
       get().fetchUserData(); 
-    },
-    findWalletByName: (name) => {
-      return get().wallets.find(w => w.name.toLowerCase() === name.toLowerCase());
-    },
-    addWalletAsync: async (w) => {
-      const userId = get().user.id;
-      set({ wallets: [...get().wallets, w] });
-      await api('wallets', 'POST', { action: 'create', wallet: w, userId });
-      get().fetchUserData();
-      return w.id;
     },
     updateWallet: async (w) => {
       const userId = get().user.id;

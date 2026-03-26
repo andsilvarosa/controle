@@ -1,4 +1,3 @@
-
 {
   "name": "sos-controle",
   "private": true,
@@ -11,37 +10,37 @@
     "preview": "npm run build && npx wrangler pages dev dist",
     "type-check": "tsc --noEmit"
   },
-"dependencies": {
-  "bank-notification-listener": "file:plugins/bank-notification-listener",
-  "@capacitor/android": "^6.0.0",
-  "@capacitor/local-notifications": "^6.0.0",
-  "@capacitor/filesystem": "^6.0.0",
-  "@capacitor/app": "^6.0.0",
-  "@capacitor/share": "^6.0.0",
-  "@capacitor/core": "^6.0.0",
-  "@neondatabase/serverless": "^0.9.0",
-  "@tsndr/cloudflare-worker-jwt": "^3.1.8",
-  "framer-motion": "^12.34.0",
-  "lucide-react": "^0.564.0",
-  "otpauth": "^9.2.2",
-  "qrcode": "^1.5.3",
-  "react": "^19.2.4",
-  "react-dom": "^19.2.4",
-  "recharts": "^3.7.0",
-  "resend": "^3.2.0",
-  "xlsx": "^0.18.5",
-  "zustand": "^5.0.11"
-},
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/app": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/filesystem": "^6.0.0",
+    "@capacitor/local-notifications": "^6.0.0",
+    "@capacitor/share": "^6.0.0",
+    "@neondatabase/serverless": "^0.9.0",
+    "@tsndr/cloudflare-worker-jwt": "^3.1.8",
+    "bank-notification-listener": "file:plugins/bank-notification-listener",
+    "framer-motion": "^12.34.0",
+    "lucide-react": "^0.564.0",
+    "otpauth": "^9.2.2",
+    "qrcode": "^1.5.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "recharts": "^3.7.0",
+    "resend": "^3.2.0",
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.11"
+  },
   "devDependencies": {
-    "@capacitor/cli": "^6.0.0",
+    "@capacitor/cli": "^8.3.0",
     "@cloudflare/workers-types": "^4.20241218.0",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@types/qrcode": "^1.5.5",
     "@vitejs/plugin-react": "^4.2.0",
     "typescript": "^5.7.0",
     "vite": "^6.0.0",
-    "wrangler": "^3.114.0"
+    "wrangler": "^4.77.0"
   },
   "engines": {
     "node": ">=18"

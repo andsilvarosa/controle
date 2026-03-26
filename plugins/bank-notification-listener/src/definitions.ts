@@ -13,6 +13,6 @@ export interface BankNotificationPlugin {
   addListener(
     eventName: 'bankNotificationReceived',
     listenerFunc: (payload: BankNotificationPayload) => void
-  ): Promise<PluginListenerHandle> & PluginListenerHandle;
+  ): Promise<PluginListenerHandle>;
   getPendingNotifications(): Promise<{ notifications: BankNotificationPayload[] }>;
 }

@@ -1,7 +1,9 @@
 package com.sos.banknotificationlistener;
 
 import android.app.Notification;
+import android.content.ComponentName;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
@@ -72,5 +74,17 @@ public class BankNotificationListenerService extends NotificationListenerService
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         // Não precisamos fazer nada ao remover a notificação
+    }
+
+    /**
+     * Chamado quando o Android desconecta o serviço (ex: economia de bateria).
+     * Solicita reconexão automática para que não perca notificações.
+     */
+    @Override
+    public void onListenerDisconnected() {
+        super.onListenerDisconnected();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            requestRebind(new ComponentName(this, BankNotificationListenerService.class));
+        }
     }
 }

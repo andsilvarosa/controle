@@ -1,0 +1,6 @@
+{
+	"appId": "com.sos.controle.teste",
+	"appName": "SOS Controle Teste",
+	"webDir": "dist",
+	"bundledWebRuntime": false
+}

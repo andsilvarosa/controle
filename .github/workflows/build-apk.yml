@@ -54,9 +54,7 @@ jobs:
       - name: Build Android APK
         working-directory: ./android
         run: |
-          if [ ! -f "gradle/wrapper/gradle-wrapper.jar" ]; then
-            gradle wrapper --gradle-version 8.2.1
-          fi
+          gradle wrapper --gradle-version 8.2.1
           chmod +x ./gradlew
           ./gradlew assembleDebug
 

@@ -35,7 +35,9 @@ jobs:
 
       - name: Generate Android Project
         run: |
-          npx cap add android
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
           npx cap sync android
           if [ -d "assets" ] && [ -f "assets/icon.png" ]; then
             npm install -g @capacitor/assets

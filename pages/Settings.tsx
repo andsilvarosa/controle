@@ -1,19 +1,22 @@
 
 import React, { useState } from 'react';
-import { User, Bell, Shield, Download, ChevronRight, Calendar } from 'lucide-react';
+import { User, Bell, Shield, Download, ChevronRight, Calendar, Smartphone } from 'lucide-react';
 import { useFinanceStore } from '../store/useFinanceStore';
 import { motion } from 'framer-motion';
 import * as XLSX from 'xlsx';
 import { UserAvatar } from '../components/UI/UserAvatar';
+import { useBankNotifications } from '../lib/useBankNotifications';
 
 export const Settings: React.FC = () => {
   const { user, categories, rules, setActiveModal } = useFinanceStore();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const { requestPermissions } = useBankNotifications();
 
   const sections = [
     { id: 'profile', icon: User, label: 'Perfil do Usuário', desc: 'Gerencie seus dados e foto' },
     { id: 'notifications', icon: Bell, label: 'Notificações', desc: 'Alertas de vencimento e relatórios', hasToggle: true },
     { id: 'security', icon: Shield, label: 'Segurança', desc: 'Senha e autenticação 2FA' },
+    { id: 'bank_sync', icon: Smartphone, label: 'Sincronização Bancária', desc: 'Permitir leitura de notificações de bancos', action: requestPermissions },
   ];
 
   // Formatar a data de criação
@@ -49,7 +52,11 @@ export const Settings: React.FC = () => {
     XLSX.writeFile(wb, "soscontrole_backup_configuracoes.xlsx");
   };
 
-  const handleAction = (id: string) => {
+  const handleAction = (id: string, action?: () => void) => {
+    if (action) {
+      action();
+      return;
+    }
     switch (id) {
       case 'profile':
         setActiveModal('profile');
@@ -97,7 +104,7 @@ export const Settings: React.FC = () => {
             {sections.map((sec) => (
               <div 
                 key={sec.id} 
-                onClick={() => !sec.hasToggle && handleAction(sec.id)}
+                onClick={() => !sec.hasToggle && handleAction(sec.id, sec.action)}
                 className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-4">

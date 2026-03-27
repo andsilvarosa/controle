@@ -14,7 +14,9 @@ export const TransactionModal: React.FC = () => {
       editingTransaction, 
       addTransaction, 
       updateTransaction,
-      setRecurrencePendingAction 
+      setRecurrencePendingAction,
+      pendingBankTransaction,
+      setPendingBankTransaction
   } = useFinanceStore();
 
   const getTodayStr = () => new Date().toLocaleDateString('sv-SE');
@@ -51,6 +53,21 @@ export const TransactionModal: React.FC = () => {
         recurrence: editingTransaction.recurrence || 'none',
         installments: (editingTransaction.installments || 1).toString()
       });
+    } else if (pendingBankTransaction) {
+      setEntryMode('manual');
+      setFormData({
+        description: pendingBankTransaction.description || '',
+        amount: pendingBankTransaction.amount?.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0,00',
+        date: getTodayStr(),
+        dueDate: getTodayStr(),
+        categoryId: categories[0]?.id || '',
+        walletId: wallets[0]?.id || '',
+        isPaid: true, // Geralmente notificação de banco já está paga
+        notes: pendingBankTransaction.notes || '',
+        recurrence: 'none',
+        installments: '1'
+      });
+      setSmartInput('');
     } else {
       setFormData({
         description: '', amount: '0,00', date: getTodayStr(), dueDate: getTodayStr(),
@@ -62,6 +79,12 @@ export const TransactionModal: React.FC = () => {
   }, [editingTransaction, categories, wallets, activeModal]);
 
   if (activeModal !== 'income' && activeModal !== 'expense') return null;
+  
+  const handleCloseModal = () => {
+    setActiveModal(null);
+    setPendingBankTransaction(null);
+  };
+
   const isIncome = activeModal === 'income';
   const theme = isIncome ? 'teal' : 'red';
   const themeColor = isIncome ? 'text-teal-600 dark:text-teal-400' : 'text-red-500 dark:text-red-400';
@@ -140,7 +163,7 @@ export const TransactionModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end lg:items-center justify-center lg:p-4">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setActiveModal(null)} className="fixed inset-0 bg-slate-900/60 backdrop-blur-md" />
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleCloseModal} className="fixed inset-0 bg-slate-900/60 backdrop-blur-md" />
       
       <motion.div 
         initial={{ y: "100%", opacity: 0 }} 
@@ -149,7 +172,7 @@ export const TransactionModal: React.FC = () => {
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
         className="bg-white dark:bg-slate-900 w-full lg:max-w-lg rounded-t-[32px] lg:rounded-[32px] shadow-2xl overflow-hidden relative z-10 max-h-[95vh] lg:max-h-[90vh] flex flex-col"
       >
-        <div className="w-full flex justify-center pt-3 pb-1 lg:hidden" onClick={() => setActiveModal(null)}>
+        <div className="w-full flex justify-center pt-3 pb-1 lg:hidden" onClick={handleCloseModal}>
            <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full" />
         </div>
 
@@ -158,7 +181,7 @@ export const TransactionModal: React.FC = () => {
             <h2 className="text-xl font-bold text-slate-800 dark:text-white">
               {editingTransaction ? (isVirtualView ? 'Pagar/Efetivar' : 'Editar') : 'Nova'} <span className={themeColor}>{isIncome ? 'Receita' : 'Despesa'}</span>
             </h2>
-            <button onClick={() => setActiveModal(null)} className="hidden lg:block p-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-400 transition-colors"><X size={20} /></button>
+            <button onClick={handleCloseModal} className="hidden lg:block p-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-400 transition-colors"><X size={20} /></button>
           </div>
           
           {!editingTransaction && (

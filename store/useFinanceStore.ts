@@ -37,6 +37,9 @@ interface FinanceState {
   activeModal: 'income' | 'expense' | 'category' | 'rule' | 'profile' | 'security' | 'wallet' | 'budget' | 'recurrence-action' | null;
   setActiveModal: (modal: 'income' | 'expense' | 'category' | 'rule' | 'profile' | 'security' | 'wallet' | 'budget' | 'recurrence-action' | null) => void;
   
+  pendingBankTransaction: Partial<Transaction> | null;
+  setPendingBankTransaction: (t: Partial<Transaction> | null) => void;
+
   recurrencePendingAction: { 
      type: 'edit' | 'delete'; 
      transaction: Transaction; 
@@ -311,6 +314,9 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
 
     activeModal: null,
     setActiveModal: (modal) => set({ activeModal: modal }),
+    
+    pendingBankTransaction: null,
+    setPendingBankTransaction: (t) => set({ pendingBankTransaction: t }),
     
     getHealthScore: () => {
         const { wallets, transactions } = get();

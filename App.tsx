@@ -14,6 +14,7 @@ import { Auth } from './pages/Auth';
 import { useFinanceStore } from './store/useFinanceStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { useBankNotifications } from './lib/useBankNotifications';
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
 const Reports = lazy(() => import('./pages/Reports').then(m => ({ default: m.Reports })));
@@ -53,6 +54,9 @@ const PageTransition: React.FC<PageTransitionProps> = ({ children, viewKey }) =>
 
 const App: React.FC = () => {
   const { view, isAuthenticated, theme, checkSession, isInitialLoading } = useFinanceStore();
+  
+  // Inicializa o listener de notificações bancárias
+  useBankNotifications();
 
   useEffect(() => {
     checkSession();
@@ -65,6 +69,7 @@ const App: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
 
   if (isInitialLoading) {
     return (

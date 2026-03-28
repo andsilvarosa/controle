@@ -1,14 +1,22 @@
 import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
 import { useFinanceStore } from "../../src/store/useFinanceStore";
-import { LogOut, User, Moon, Sun, ChevronRight, Shield, Bell } from "lucide-react-native";
+import { LogOut, User, Moon, Sun, ChevronRight, Shield, Bell, LayoutGrid, ListFilter, Target } from "lucide-react-native";
+import { useRouter } from "expo-router";
 
 export default function Settings() {
   const { user, logout, theme, toggleTheme } = useFinanceStore();
+  const router = useRouter();
 
   const settingsItems = [
-    { icon: User, label: "Perfil", color: "#3b82f6" },
-    { icon: Bell, label: "Notificações", color: "#f59e0b" },
-    { icon: Shield, label: "Segurança", color: "#10b981" },
+    { icon: User, label: "Perfil", color: "#3b82f6", action: () => {} },
+    { icon: Bell, label: "Notificações", color: "#f59e0b", action: () => {} },
+    { icon: Shield, label: "Segurança", color: "#10b981", action: () => {} },
+  ];
+
+  const manageItems = [
+    { icon: LayoutGrid, label: "Categorias", color: "#8b5cf6", action: () => router.push('/categories') },
+    { icon: ListFilter, label: "Regras de Importação", color: "#ec4899", action: () => router.push('/rules') },
+    { icon: Target, label: "Orçamentos", color: "#10b981", action: () => router.push('/budgets') },
   ];
 
   return (
@@ -31,8 +39,31 @@ export default function Settings() {
           {settingsItems.map((item, index) => (
             <TouchableOpacity
               key={item.label}
+              onPress={item.action}
               className={`flex-row items-center p-4 ${
                 index !== settingsItems.length - 1 ? "border-b border-gray-50" : ""
+              }`}
+            >
+              <View
+                className="w-8 h-8 rounded-lg items-center justify-center mr-3"
+                style={{ backgroundColor: `${item.color}20` }}
+              >
+                <item.icon size={18} color={item.color} />
+              </View>
+              <Text className="flex-1 text-gray-700 font-medium">{item.label}</Text>
+              <ChevronRight size={18} color="#d1d5db" />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text className="text-xs font-bold text-gray-400 uppercase mt-8 mb-4 ml-2">Gerenciamento</Text>
+        <View className="bg-white rounded-2xl overflow-hidden shadow-sm">
+          {manageItems.map((item, index) => (
+            <TouchableOpacity
+              key={item.label}
+              onPress={item.action}
+              className={`flex-row items-center p-4 ${
+                index !== manageItems.length - 1 ? "border-b border-gray-50" : ""
               }`}
             >
               <View

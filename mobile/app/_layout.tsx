@@ -3,6 +3,13 @@ import { useEffect } from "react";
 import { useFinanceStore } from "../src/store/useFinanceStore";
 import { StatusBar } from "expo-status-bar";
 import { TransactionModal } from "../src/components/TransactionModal";
+import { WalletModal } from "../src/components/WalletModal";
+import { CategoryModal } from "../src/components/CategoryModal";
+import { RuleModal } from "../src/components/RuleModal";
+import { BudgetModal } from "../src/components/BudgetModal";
+import { ProfileModal } from "../src/components/ProfileModal";
+import { SecurityModal } from "../src/components/SecurityModal";
+import { RecurrenceActionModal } from "../src/components/RecurrenceActionModal";
 import "../global.css";
 
 export default function RootLayout() {
@@ -36,6 +43,13 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
       </Stack>
       <TransactionModal />
+      <WalletModal />
+      <CategoryModal />
+      <RuleModal />
+      <BudgetModal />
+      <ProfileModal />
+      <SecurityModal />
+      <RecurrenceActionModal />
     </>
   );
 }

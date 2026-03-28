@@ -112,7 +112,7 @@ interface FinanceState {
 // 🎫 O APP AGORA SABE ENVIAR O CRACHÁ NAS REQUISIÇÕES
 const api = async (endpoint: string, method: string, body?: any) => {
   try {
-    const API_BASE = process.env.EXPO_PUBLIC_API_URL || '';
+    const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://sos-controle-api.andsilvarosa.workers.dev';
     const url = `${API_BASE}/api/${endpoint}`;
     
     // Pega o token salvo no navegador (mantido por compatibilidade)
@@ -550,7 +550,8 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
         
         if (res.token) {
             await AsyncStorage.setItem('sos_token', res.token);
-            console.log("Token salvo no AsyncStorage");
+            await AsyncStorage.setItem('sos_user', JSON.stringify({ ...res, twoFactorEnabled: res.two_factor_enabled }));
+            console.log("Token e usuário salvos no AsyncStorage");
         }
 
         const userData = { ...res, twoFactorEnabled: res.two_factor_enabled };
@@ -579,6 +580,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
         
         if (res.token) {
             await AsyncStorage.setItem('sos_token', res.token);
+            await AsyncStorage.setItem('sos_user', JSON.stringify(res));
         }
 
         set({ isAuthenticated: true, user: res, is2FAEnabled: false });
@@ -894,15 +896,38 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
 
     // 🎫 APAGA O CRACHÁ NO LOGOUT
     init: async () => {
-      const savedTheme = await AsyncStorage.getItem('sos_theme') as 'light' | 'dark';
-      if (savedTheme) { set({ theme: savedTheme }); }
-      const token = await AsyncStorage.getItem('sos_token');
-      if (token) { set({ isAuthenticated: true }); get().fetchUserData(); } set({ isReady: true });
+      try {
+        const savedTheme = await AsyncStorage.getItem('sos_theme') as 'light' | 'dark';
+        if (savedTheme) { set({ theme: savedTheme }); }
+        
+        const token = await AsyncStorage.getItem('sos_token');
+        const savedUser = await AsyncStorage.getItem('sos_user');
+        
+        if (token && savedUser) { 
+          set({ isAuthenticated: true, user: JSON.parse(savedUser) }); 
+          get().fetchUserData(); 
+        }
+      } catch (e) {
+        console.error("Erro no init:", e);
+      } finally {
+        set({ isReady: true });
+      }
     },
     logout: async () => {
         await AsyncStorage.removeItem('sos_token');
+        await AsyncStorage.removeItem('sos_user');
         api('auth', 'POST', { action: 'logout' });
-        set({ isAuthenticated: false, isReady: false, user: { name: "", email: "", avatar: "" }, transactions: [], categories: [], rules: [], wallets: [], budgets: [], view: 'auth' });
+        set({ 
+            isAuthenticated: false, 
+            isReady: true, 
+            user: { name: "", email: "", avatar: "" }, 
+            transactions: [], 
+            categories: [], 
+            rules: [], 
+            wallets: [], 
+            budgets: [], 
+            view: 'auth' 
+        });
     }
   };
 });

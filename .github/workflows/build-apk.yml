@@ -27,7 +27,7 @@ jobs:
 
       - name: Install Mobile Dependencies
         working-directory: ./mobile
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Prebuild Android (Expo)
         working-directory: ./mobile

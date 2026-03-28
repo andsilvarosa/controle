@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
+import * as Crypto from 'expo-crypto';
 import { Transaction, Category, Rule, ViewType, UserProfile, Wallet, Budget, TransactionType, RecurrenceException, Badge } from '../types';
 
 interface FinanceState {
@@ -441,7 +442,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
 
             if (scope === 'single') {
                 if (shouldDetach) {
-                    payload.id = crypto.randomUUID();
+                    payload.id = Crypto.randomUUID();
                     payload.masterId = masterId;
                     payload.isRecurring = false; 
                     payload.recurrence = 'none';
@@ -572,7 +573,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
     signup: async (userData) => {
       set({ isLoading: true });
       try {
-        const id = crypto.randomUUID(); 
+        const id = Crypto.randomUUID(); 
         const userToCreate = { ...userData, id };
         const res = await api('auth', 'POST', { action: 'signup', email: userData.email, userData: userToCreate });
         

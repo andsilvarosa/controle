@@ -2,6 +2,7 @@
   "expo": {
     "name": "sos-controle-mobile",
     "slug": "sos-controle-mobile",
+    "scheme": "sos-controle",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",

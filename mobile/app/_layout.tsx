@@ -38,11 +38,13 @@ export default function RootLayout() {
     if (!isReady) return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    console.log("RootLayout: Auth state check", { isAuthenticated, inAuthGroup, segments });
+    console.log("RootLayout: Auth check", { isAuthenticated, inAuthGroup, segments, isReady });
 
     if (!isAuthenticated && !inAuthGroup) {
+      console.log("RootLayout: Redirecting to login");
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
+      console.log("RootLayout: Redirecting to dashboard");
       router.replace('/(tabs)/dashboard');
     }
   }, [isAuthenticated, isReady, segments]);

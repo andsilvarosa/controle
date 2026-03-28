@@ -896,6 +896,7 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
 
     // 🎫 APAGA O CRACHÁ NO LOGOUT
     init: async () => {
+      console.log("useFinanceStore: Iniciando init...");
       try {
         const savedTheme = await AsyncStorage.getItem('sos_theme') as 'light' | 'dark';
         if (savedTheme) { set({ theme: savedTheme }); }
@@ -904,13 +905,18 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
         const savedUser = await AsyncStorage.getItem('sos_user');
         
         if (token && savedUser) { 
-          set({ isAuthenticated: true, user: JSON.parse(savedUser) }); 
+          const parsedUser = JSON.parse(savedUser);
+          console.log("useFinanceStore: Usuário recuperado:", parsedUser.email);
+          set({ isAuthenticated: true, user: parsedUser }); 
           get().fetchUserData(); 
+        } else {
+          console.log("useFinanceStore: Nenhum usuário logado encontrado.");
         }
       } catch (e) {
         console.error("Erro no init:", e);
       } finally {
         set({ isReady: true });
+        console.log("useFinanceStore: Init finalizado, isReady: true");
       }
     },
     logout: async () => {

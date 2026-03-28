@@ -1,5 +1,5 @@
 import { Stack, useRouter, useSegments } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFinanceStore } from "../src/store/useFinanceStore";
 import { StatusBar } from "expo-status-bar";
 import { View, ActivityIndicator, Text } from "react-native";
@@ -15,48 +15,56 @@ import { RecurrenceActionModal } from "../src/components/RecurrenceActionModal";
 import "../global.css";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const { isAuthenticated, isReady, init } = useFinanceStore();
   const segments = useSegments();
   const router = useRouter();
+  const [appIsReady, setAppIsReady] = useState(false);
 
   useEffect(() => {
-    console.log("RootLayout: Initializing...");
-    init().catch(err => console.error("RootLayout: Init failed", err));
+    async function prepare() {
+      try {
+        console.log("RootLayout: Iniciando preparação...");
+        await init();
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setAppIsReady(true);
+      }
+    }
+    prepare();
   }, []);
 
   useEffect(() => {
-    if (isReady) {
-      console.log("RootLayout: Ready, hiding splash screen");
-      SplashScreen.hideAsync().catch(err => console.warn("RootLayout: Failed to hide splash", err));
+    if (appIsReady && isReady) {
+      console.log("RootLayout: App pronto, escondendo splash");
+      SplashScreen.hideAsync().catch(() => {});
     }
-  }, [isReady]);
+  }, [appIsReady, isReady]);
 
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady || !appIsReady) return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    console.log("RootLayout: Auth check", { isAuthenticated, inAuthGroup, segments, isReady });
-
+    
     if (!isAuthenticated && !inAuthGroup) {
-      console.log("RootLayout: Redirecting to login");
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
-      console.log("RootLayout: Redirecting to dashboard");
       router.replace('/(tabs)/dashboard');
     }
-  }, [isAuthenticated, isReady, segments]);
+  }, [isAuthenticated, isReady, appIsReady, segments]);
 
-  if (!isReady) {
+  if (!isReady || !appIsReady) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9fafb' }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' }}>
         <ActivityIndicator size="large" color="#0d9488" />
-        <Text style={{ marginTop: 10, color: '#6b7280' }}>Carregando...</Text>
+        <Text style={{ marginTop: 10, color: '#6b7280' }}>Iniciando SOS Controle...</Text>
       </View>
     );
   }
+
   return (
     <>
       <StatusBar style="auto" />

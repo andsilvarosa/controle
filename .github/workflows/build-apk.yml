@@ -41,7 +41,8 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
         run: |
           node -e "const fs=require('fs'); const app=JSON.parse(fs.readFileSync('app.json','utf8')); app.expo.android = { ...(app.expo.android || {}), versionCode: Number(process.env.BUILD_NUMBER || app.expo.android?.versionCode || 1) }; fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n');"
-          echo "APP_VERSION=$(node -p \"require('./app.json').expo.version\")" >> $GITHUB_ENV
+          APP_VERSION=$(node -p "require('./app.json').expo.version")
+          echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
 
       - name: Prebuild Android (Expo)
         working-directory: ./mobile

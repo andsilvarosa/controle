@@ -11,6 +11,8 @@ jobs:
   build:
     name: Generate APK
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
 
     steps:
       - name: Checkout Source Code

@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -27,15 +26,16 @@ import {
   ShieldCheck,
   Sparkles,
   Zap,
-  LayoutDashboard,
   Shield,
   Info,
   X,
+  BarChart3,
 } from "lucide-react-native";
 
 const COLORS = {
   primary: "#0d9488",
   primaryDark: "#0f766e",
+  primaryLight: "#14b8a6",
   background: "#f5f5f5",
   card: "#ffffff",
   text: "#111827",
@@ -46,6 +46,8 @@ const COLORS = {
   errorBg: "#fef2f2",
   success: "#059669",
   successBg: "#ecfdf5",
+  zinc50: "#fafafa",
+  zinc100: "#f4f4f5",
 };
 
 type AuthMode = "login" | "signup" | "recovery" | "twoFactor";
@@ -74,16 +76,6 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location?.search || "");
-    const token = params.get("token");
-    if (token) {
-      setRecoveryCode(token);
-      setMode("recovery");
-      setRecoveryStep(2);
-    }
-  }, []);
 
   const resetForm = () => {
     setError("");
@@ -209,19 +201,27 @@ export default function Login() {
     return "Acesse sua conta para gerenciar suas finanças";
   };
 
-  const renderIconInput = (Icon: any, value: string, onChange: (t: string) => void, placeholder: string, props: any = {}) => (
-    <View style={styles.inputContainer}>
-      <View style={styles.inputIcon}>
+  const renderInput = (Icon: any, value: string, onChange: (t: string) => void, placeholder: string, isPassword = false, keyboardType: "default" | "email-address" | "phone-pad" | "numeric" = "default", maxLength?: number) => (
+    <View style={styles.inputWrapper}>
+      <View style={styles.inputIconContainer}>
         <Icon size={20} color={COLORS.textMuted} />
       </View>
       <TextInput
-        style={[styles.input, props.multiline && styles.inputMultiline]}
+        style={styles.input}
         placeholder={placeholder}
         placeholderTextColor={COLORS.textMuted}
         value={value}
         onChangeText={onChange}
-        {...props}
+        secureTextEntry={isPassword && !showPassword}
+        keyboardType={keyboardType}
+        autoCapitalize="none"
+        maxLength={maxLength}
       />
+      {isPassword && (
+        <TouchableOpacity style={styles.inputEye} onPress={() => setShowPassword(!showPassword)}>
+          {showPassword ? <EyeOff size={20} color={COLORS.textMuted} /> : <Eye size={20} color={COLORS.textMuted} />}
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -242,11 +242,11 @@ export default function Login() {
             maxLength={6}
             textAlign="center"
           />
-          <TouchableOpacity style={styles.primaryButton} onPress={handleTwoFactor} disabled={isLoading}>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleTwoFactor} disabled={isLoading || twoFactorCode.length !== 6}>
             {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryButtonText}>Verificar Código</Text>}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.linkButton} onPress={() => { resetForm(); setMode("login"); }}>
-            <Text style={styles.linkButtonText}>Voltar</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => { resetForm(); setMode("login"); }}>
+            <Text style={styles.backButtonText}>Voltar</Text>
           </TouchableOpacity>
         </View>
       );
@@ -255,25 +255,38 @@ export default function Login() {
     if (mode === "recovery") {
       return (
         <View style={styles.formSection}>
+          {error ? (
+            <View style={styles.alertBanner}>
+              <AlertTriangle size={18} color={COLORS.error} />
+              <Text style={styles.alertText}>{error}</Text>
+            </View>
+          ) : null}
+          {successMsg ? (
+            <View style={[styles.alertBanner, styles.alertSuccess]}>
+              <Check size={18} color={COLORS.success} />
+              <Text style={[styles.alertText, styles.alertTextSuccess]}>{successMsg}</Text>
+            </View>
+          ) : null}
+
           {recoveryStep === 1 ? (
             <>
-              {renderIconInput(Mail, email, setEmail, "E-mail cadastrado", { keyboardType: "email-address", autoCapitalize: "none" })}
+              {renderInput(Mail, email, setEmail, "E-mail cadastrado", false, "email-address")}
               <TouchableOpacity style={styles.primaryButton} onPress={handleRequestRecovery} disabled={isLoading}>
                 {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryButtonText}>Enviar Código</Text>}
               </TouchableOpacity>
             </>
           ) : (
             <>
-              {renderIconInput(Lock, recoveryCode, setRecoveryCode, "Código")}
-              {renderIconInput(Lock, newPassword, setNewPassword, "Nova Senha", { secureTextEntry: !showPassword })}
-              {renderIconInput(Lock, confirmNewPassword, setConfirmNewPassword, "Confirmar Nova Senha", { secureTextEntry: !showPassword })}
+              {renderInput(Lock, recoveryCode, setRecoveryCode, "Código", false, "numeric", 6)}
+              {renderInput(Lock, newPassword, setNewPassword, "Nova Senha", true)}
+              {renderInput(Lock, confirmNewPassword, setConfirmNewPassword, "Confirmar Nova Senha", true)}
               <TouchableOpacity style={styles.primaryButton} onPress={handleResetPassword} disabled={isLoading}>
                 {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryButtonText}>Redefinir Senha</Text>}
               </TouchableOpacity>
             </>
           )}
-          <TouchableOpacity style={styles.linkButton} onPress={() => { resetForm(); setMode("login"); setRecoveryStep(1); }}>
-            <Text style={styles.linkButtonText}>Voltar ao login</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => { resetForm(); setMode("login"); setRecoveryStep(1); }}>
+            <Text style={styles.backButtonText}>Voltar ao login</Text>
           </TouchableOpacity>
         </View>
       );
@@ -281,58 +294,45 @@ export default function Login() {
 
     return (
       <View style={styles.formSection}>
-        {mode === "signup" && renderIconInput(User, name, setName, "Nome completo")}
-        {renderIconInput(Mail, email, setEmail, "E-mail", { keyboardType: "email-address", autoCapitalize: "none" })}
-        {mode === "signup" && renderIconInput(Smartphone, phone, handlePhoneChange, "WhatsApp / Celular", { keyboardType: "phone-pad" })}
-        <View style={styles.inputContainer}>
-          <View style={styles.inputIcon}>
-            <Lock size={20} color={COLORS.textMuted} />
+        {error ? (
+          <View style={styles.alertBanner}>
+            <AlertTriangle size={18} color={COLORS.error} />
+            <Text style={styles.alertText}>{error}</Text>
           </View>
-          <TextInput
-            style={styles.input}
-            placeholder="Senha"
-            placeholderTextColor={COLORS.textMuted}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-          />
-          <TouchableOpacity style={styles.inputTrailing} onPress={() => setShowPassword(!showPassword)}>
-            {showPassword ? <EyeOff size={20} color={COLORS.textMuted} /> : <Eye size={20} color={COLORS.textMuted} />}
-          </TouchableOpacity>
-        </View>
-        {mode === "signup" && (
-          <View style={styles.inputContainer}>
-            <View style={styles.inputIcon}>
-              <Lock size={20} color={COLORS.textMuted} />
-            </View>
-            <TextInput
-              style={styles.input}
-              placeholder="Confirmar Senha"
-              placeholderTextColor={COLORS.textMuted}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showPassword}
-            />
+        ) : null}
+        {successMsg ? (
+          <View style={[styles.alertBanner, styles.alertSuccess]}>
+            <Check size={18} color={COLORS.success} />
+            <Text style={[styles.alertText, styles.alertTextSuccess]}>{successMsg}</Text>
           </View>
-        )}
+        ) : null}
+
+        {mode === "signup" && renderInput(User, name, setName, "Nome completo")}
+        {renderInput(Mail, email, setEmail, "E-mail", false, "email-address")}
+        {mode === "signup" && renderInput(Smartphone, phone, handlePhoneChange, "WhatsApp / Celular", false, "phone-pad", 15)}
+        {renderInput(Lock, password, setPassword, "Senha", true)}
+        {mode === "signup" && renderInput(Lock, confirmPassword, setConfirmPassword, "Confirmar Senha", true)}
+
         {mode === "login" && (
           <View style={styles.rowBetween}>
             <TouchableOpacity style={styles.checkboxRow} onPress={() => setRememberMe(!rememberMe)}>
               <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
-                {rememberMe && <Check size={14} color="#fff" />}
+                {rememberMe && <Check size={14} color="#fff" strokeWidth={3} />}
               </View>
               <Text style={styles.checkboxLabel}>Lembrar</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => { resetForm(); setMode("recovery"); }}>
-              <Text style={styles.linkText}>Esqueceu a senha?</Text>
+              <Text style={styles.forgotText}>Esqueceu a senha?</Text>
             </TouchableOpacity>
           </View>
         )}
+
         <TouchableOpacity style={styles.primaryButton} onPress={handleSubmit} disabled={isLoading}>
           {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.primaryButtonText}>{mode === "signup" ? "Criar Conta" : "Entrar"}</Text>}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.linkButton} onPress={() => { resetForm(); setMode(mode === "login" ? "signup" : "login"); }}>
-          <Text style={styles.linkButtonText}>
+
+        <TouchableOpacity style={styles.toggleButton} onPress={() => { resetForm(); setMode(mode === "login" ? "signup" : "login"); }}>
+          <Text style={styles.toggleButtonText}>
             {mode === "login" ? "Não tem uma conta? Cadastre-se" : "Já tem uma conta? Faça login"}
           </Text>
         </TouchableOpacity>
@@ -340,107 +340,147 @@ export default function Login() {
     );
   };
 
+  const getModalTitle = () => {
+    if (activeModal === "privacy") return "Privacidade e Dados";
+    if (activeModal === "security") return "Segurança e Proteção";
+    if (activeModal === "help") return "Central de Ajuda";
+    return "";
+  };
+
+  const getModalContent = () => {
+    if (activeModal === "privacy") {
+      return "Nosso compromisso com seus dados é total. No SOS Controle, acreditamos que sua privacidade não tem preço.\n\nNão vendemos, não alugamos e não compartilhamos suas informações pessoais ou financeiras com terceiros para fins publicitários.\n\nOperamos em total conformidade com a LGPD (Lei Geral de Proteção de Dados), garantindo que você tenha controle total sobre seus dados e a transparência necessária sobre como eles são utilizados para melhorar sua experiência.";
+    }
+    if (activeModal === "security") {
+      return "Sua segurança é o pilar central da nossa plataforma. Utilizamos uma infraestrutura de nível bancário para proteger seu patrimônio digital.\n\nNossa estrutura conta com travas robustas contra ataques de força bruta e sistemas de detecção de intrusão em tempo real.\n\nImplementamos validação rigorosa em todas as camadas, autenticação de dois fatores (2FA) e criptografia de ponta a ponta, garantindo que apenas você tenha acesso às suas informações sensíveis.";
+    }
+    if (activeModal === "help") {
+      return "Precisa de uma mãozinha? Estamos aqui para você!\n\nNossa central de ajuda conta com tutoriais detalhados e uma equipe de suporte humanizado pronta para tirar qualquer dúvida sobre a plataforma.\n\nVocê pode entrar em contato conosco pelo e-mail suporte@sostec.top ou através do chat disponível dentro do seu painel de controle após o login.";
+    }
+    return "";
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.flex}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-          <View style={styles.header}>
-            <View style={styles.logoBadge}>
-              <Text style={styles.logoText}>SOS</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          
+          {/* BRAND HEADER - Estilo similar ao web */}
+          <View style={styles.brandSection}>
+            <View style={styles.logoContainer}>
+              <View style={styles.logoBadge}>
+                <Text style={styles.logoText}>SOS</Text>
+              </View>
+              <Text style={styles.brandName}>Controle</Text>
             </View>
-            <Text style={styles.brandName}>Controle</Text>
+            
             <Text style={styles.headline}>Sua vida financeira{'\n'}em um só lugar.</Text>
             <Text style={styles.subheadline}>Gerencie seus gastos, planeje seu futuro e alcance seus objetivos com inteligência.</Text>
           </View>
 
-          <View style={styles.card}>
+          {/* AUTH CARD - Estilo similar ao web (lado direito branco) */}
+          <View style={styles.authCard}>
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>{getTitle()}</Text>
               <Text style={styles.cardSubtitle}>{getSubtitle()}</Text>
             </View>
 
-            {error ? (
-              <View style={styles.alertBanner}>
-                <AlertTriangle size={18} color={COLORS.error} />
-                <Text style={styles.alertText}>{error}</Text>
-              </View>
-            ) : null}
-            {successMsg ? (
-              <View style={[styles.alertBanner, styles.alertSuccess]}>
-                <Check size={18} color={COLORS.success} />
-                <Text style={[styles.alertText, styles.alertTextSuccess]}>{successMsg}</Text>
-              </View>
-            ) : null}
-
             {renderForm()}
           </View>
 
-          <View style={styles.features}>
-            <View style={styles.featureCard}>
-              <View style={styles.featureIcon}>
-                <Sparkles size={24} color={COLORS.primary} />
+          {/* BENTO GRID FEATURES - Similar ao web */}
+          <View style={styles.featuresSection}>
+            
+            {/* Projeções com IA - Card Grande */}
+            <View style={styles.featureCardLarge}>
+              <View style={styles.featureIconBox}>
+                <Sparkles size={28} color={COLORS.primary} />
               </View>
-              <Text style={styles.featureTitle}>Projeções com IA</Text>
-              <Text style={styles.featureDesc}>Nosso algoritmo analisa seus hábitos e projeta seu saldo para os próximos meses.</Text>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>Projeções com Inteligência Artificial</Text>
+                <Text style={styles.featureDesc}>Nosso algoritmo analisa seus hábitos e projeta seu saldo para os próximos meses, ajudando você a tomar decisões melhores hoje.</Text>
+              </View>
             </View>
 
-            <View style={[styles.featureCard, styles.featureCardPrimary]}>
-              <View style={[styles.featureIcon, styles.featureIconPrimary]}>
-                <Shield size={24} color="#fff" />
+            {/* Segurança Máxima - Card Verde */}
+            <View style={styles.featureCardPrimary}>
+              <View style={styles.featureIconBoxPrimary}>
+                <ShieldCheck size={28} color="#fff" />
               </View>
-              <Text style={[styles.featureTitle, styles.featureTitlePrimary]}>Segurança Máxima</Text>
-              <Text style={[styles.featureDesc, styles.featureDescPrimary]}>Seus dados são protegidos com criptografia de ponta e protocolos bancários.</Text>
+              <View style={styles.featureContentPrimary}>
+                <Text style={styles.featureTitlePrimary}>Segurança Máxima</Text>
+                <Text style={styles.featureDescPrimary}>Seus dados são protegidos com criptografia de ponta e protocolos bancários.</Text>
+              </View>
             </View>
 
-            <View style={styles.featureCard}>
-              <View style={styles.featureIcon}>
+            {/* Automação - Card Pequeno */}
+            <View style={styles.featureCardSmall}>
+              <View style={styles.featureIconBoxSmall}>
                 <Zap size={24} color={COLORS.primary} />
               </View>
-              <Text style={styles.featureTitle}>Automação</Text>
-              <Text style={styles.featureDesc}>Categorização automática e regras inteligentes para economizar tempo.</Text>
+              <Text style={styles.featureTitleSmall}>Automação</Text>
+              <Text style={styles.featureDescSmall}>Categorização automática de lançamentos e regras inteligentes para economizar tempo.</Text>
+            </View>
+
+            {/* Relatórios Detalhados - Card Grande */}
+            <View style={styles.featureCardLarge}>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>Relatórios Detalhados</Text>
+                <Text style={styles.featureDesc}>Visualize sua evolução financeira com gráficos interativos e insights poderosos sobre seu comportamento de consumo.</Text>
+              </View>
+              <View style={styles.chartPlaceholder}>
+                <View style={styles.chartBar} />
+                <View style={[styles.chartBar, styles.chartBar2]} />
+                <View style={[styles.chartBar, styles.chartBar3]} />
+                <View style={[styles.chartBar, styles.chartBar4]} />
+                <View style={[styles.chartBar, styles.chartBar5]} />
+                <View style={[styles.chartBar, styles.chartBar6]} />
+                <View style={[styles.chartBar, styles.chartBar7]} />
+              </View>
+            </View>
+
+          </View>
+
+          {/* FOOTER */}
+          <View style={styles.footer}>
+            <View style={styles.footerLogo}>
+              <Text style={styles.footerLogoText}>SOS</Text>
+              <Text style={styles.footerCopyright}>Controle © 2024</Text>
+            </View>
+            <View style={styles.footerLinks}>
+              <TouchableOpacity onPress={() => setActiveModal("privacy")}>
+                <Text style={styles.footerLink}>Privacidade</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setActiveModal("security")}>
+                <Text style={styles.footerLink}>Segurança</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setActiveModal("help")}>
+                <Text style={styles.footerLink}>Ajuda</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
-          <View style={styles.footer}>
-            <TouchableOpacity onPress={() => setActiveModal("privacy")}>
-              <Text style={styles.footerLink}>Privacidade</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setActiveModal("security")}>
-              <Text style={styles.footerLink}>Segurança</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setActiveModal("help")}>
-              <Text style={styles.footerLink}>Ajuda</Text>
-            </TouchableOpacity>
-            <Text style={styles.copyright}>© 2024 SOS Controle</Text>
-          </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {/* MODAL */}
       <Modal visible={activeModal !== null} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View style={styles.modalTitleRow}>
-                <View style={styles.modalIcon}>
+                <View style={styles.modalIconBox}>
                   {activeModal === "privacy" && <Shield size={24} color={COLORS.primary} />}
                   {activeModal === "security" && <ShieldCheck size={24} color={COLORS.primary} />}
                   {activeModal === "help" && <Info size={24} color={COLORS.primary} />}
                 </View>
-                <Text style={styles.modalTitle}>
-                  {activeModal === "privacy" && "Privacidade e Dados"}
-                  {activeModal === "security" && "Segurança e Proteção"}
-                  {activeModal === "help" && "Central de Ajuda"}
-                </Text>
+                <Text style={styles.modalTitle}>{getModalTitle()}</Text>
               </View>
               <TouchableOpacity onPress={() => setActiveModal(null)} style={styles.modalClose}>
                 <X size={20} color={COLORS.textMuted} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.modalBody}>
-              {activeModal === "privacy" && "No SOS Controle, a privacidade dos seus dados é tratada como prioridade. Suas informações pessoais e financeiras não são vendidas, alugadas nem compartilhadas com terceiros para publicidade. Atuamos em conformidade com a LGPD, com transparência e controle total dos seus dados."}
-              {activeModal === "security" && "A segurança é um dos pilares da plataforma, com infraestrutura de nível bancário para proteger suas informações. O sistema inclui proteção contra força bruta, detecção de intrusão em tempo real, validação em todas as camadas, 2FA e criptografia de ponta a ponta. Assim, apenas você pode acessar seus dados sensíveis."}
-              {activeModal === "help" && "Precisa de uma mãozinha? Estamos aqui para você! Nossa central de ajuda conta com tutoriais detalhados e uma equipe de suporte humanizada pronta para tirar qualquer dúvida sobre a plataforma. Você pode entrar em contato pelo e-mail suporte@sostec.top ou através do chat disponível dentro do seu painel de controle após o login."}
-            </Text>
+            <Text style={styles.modalBody}>{getModalContent()}</Text>
             <TouchableOpacity style={styles.modalButton} onPress={() => setActiveModal(null)}>
               <Text style={styles.modalButtonText}>Entendido</Text>
             </TouchableOpacity>
@@ -455,58 +495,101 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   container: { flex: 1, backgroundColor: COLORS.background },
   scrollContent: { padding: 16, paddingBottom: 40 },
-  header: { alignItems: "center", marginBottom: 24, paddingTop: 20 },
-  logoBadge: { width: 56, height: 56, borderRadius: 16, backgroundColor: COLORS.primary, alignItems: "center", justifyContent: "center", marginBottom: 12 },
-  logoText: { fontSize: 22, fontWeight: "900", color: "#fff" },
-  brandName: { fontSize: 24, fontWeight: "900", color: COLORS.text, marginBottom: 16 },
-  headline: { fontSize: 26, fontWeight: "700", color: COLORS.text, textAlign: "center", marginBottom: 8, lineHeight: 32 },
-  subheadline: { fontSize: 14, color: COLORS.textSecondary, textAlign: "center", maxWidth: 280 },
-  card: { backgroundColor: COLORS.card, borderRadius: 32, padding: 24, shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 12, elevation: 6 },
+  
+  // Brand Section
+  brandSection: { alignItems: "center", paddingTop: 20, paddingBottom: 24 },
+  logoContainer: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 20 },
+  logoBadge: { width: 52, height: 52, borderRadius: 16, backgroundColor: COLORS.primary, alignItems: "center", justifyContent: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 6, elevation: 4 },
+  logoText: { fontSize: 20, fontWeight: "900", color: "#fff" },
+  brandName: { fontSize: 24, fontWeight: "900", color: COLORS.text },
+  headline: { fontSize: 28, fontWeight: "700", color: "#fff", textAlign: "center", marginBottom: 10, lineHeight: 36 },
+  subheadline: { fontSize: 14, color: "rgba(255,255,255,0.8)", textAlign: "center", maxWidth: 280, lineHeight: 20 },
+  
+  // Auth Card
+  authCard: { backgroundColor: COLORS.card, borderRadius: 32, padding: 24, shadowColor: "#000", shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.08, shadowRadius: 24, elevation: 8, marginBottom: 24 },
   cardHeader: { marginBottom: 20 },
   cardTitle: { fontSize: 22, fontWeight: "700", color: COLORS.text, marginBottom: 4 },
   cardSubtitle: { fontSize: 14, color: COLORS.textSecondary },
-  alertBanner: { flexDirection: "row", alignItems: "center", backgroundColor: COLORS.errorBg, padding: 12, borderRadius: 16, marginBottom: 16 },
+  formSection: {},
+  alertBanner: { flexDirection: "row", alignItems: "center", backgroundColor: COLORS.errorBg, padding: 14, borderRadius: 16, marginBottom: 16 },
   alertSuccess: { backgroundColor: COLORS.successBg },
   alertText: { flex: 1, marginLeft: 10, fontSize: 13, fontWeight: "600", color: COLORS.error },
   alertTextSuccess: { color: COLORS.success },
-  formSection: {},
-  inputContainer: { position: "relative", marginBottom: 14 },
-  inputIcon: { position: "absolute", left: 16, top: 0, bottom: 0, justifyContent: "center", zIndex: 1 },
-  input: { backgroundColor: "#f3f4f6", borderRadius: 20, paddingVertical: 16, paddingLeft: 48, paddingRight: 48, fontSize: 16, fontWeight: "500", color: COLORS.text },
-  inputMultiline: { minHeight: 100, textAlignVertical: "top", paddingTop: 16 },
-  inputTrailing: { position: "absolute", right: 16, top: 0, bottom: 0, justifyContent: "center", zIndex: 1 },
+  
+  // Inputs
+  inputWrapper: { position: "relative", marginBottom: 14 },
+  inputIconContainer: { position: "absolute", left: 16, top: 0, bottom: 0, justifyContent: "center", zIndex: 1 },
+  input: { backgroundColor: COLORS.zinc100, borderRadius: 24, paddingVertical: 16, paddingLeft: 48, paddingRight: 48, fontSize: 16, fontWeight: "500", color: COLORS.text },
+  inputEye: { position: "absolute", right: 16, top: 0, bottom: 0, justifyContent: "center", zIndex: 1 },
+  
+  // 2FA
   twoFactorIcon: { alignItems: "center", marginBottom: 16 },
-  twoFactorInput: { backgroundColor: "#f3f4f6", borderRadius: 20, paddingVertical: 20, fontSize: 32, fontWeight: "700", color: COLORS.text, textAlign: "center", letterSpacing: 12, marginBottom: 20 },
+  twoFactorInput: { backgroundColor: COLORS.zinc100, borderRadius: 24, paddingVertical: 20, fontSize: 32, fontWeight: "700", color: COLORS.text, textAlign: "center", letterSpacing: 16, marginBottom: 20 },
+  
+  // Checkbox & Forgot
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingHorizontal: 4 },
   checkboxRow: { flexDirection: "row", alignItems: "center" },
-  checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 2, borderColor: COLORS.border, marginRight: 8, alignItems: "center", justifyContent: "center" },
+  checkbox: { width: 20, height: 20, borderRadius: 6, borderWidth: 2, borderColor: COLORS.border, marginRight: 10, alignItems: "center", justifyContent: "center" },
   checkboxChecked: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   checkboxLabel: { fontSize: 13, color: COLORS.textSecondary },
-  linkText: { fontSize: 13, color: COLORS.primary, fontWeight: "600" },
-  primaryButton: { backgroundColor: COLORS.primary, borderRadius: 20, paddingVertical: 18, alignItems: "center", marginTop: 8 },
-  primaryButtonText: { color: "#fff", fontSize: 15, fontWeight: "700", letterSpacing: 1 },
-  linkButton: { paddingVertical: 16, alignItems: "center" },
-  linkButtonText: { color: COLORS.textMuted, fontSize: 12, fontWeight: "600", letterSpacing: 1 },
-  features: { marginTop: 24, gap: 12 },
-  featureCard: { backgroundColor: COLORS.card, borderRadius: 24, padding: 16, flexDirection: "row", alignItems: "center", shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
-  featureCardPrimary: { backgroundColor: COLORS.primary },
-  featureIcon: { width: 48, height: 48, borderRadius: 16, backgroundColor: "#f0fdfa", alignItems: "center", justifyContent: "center", marginRight: 14 },
-  featureIconPrimary: { backgroundColor: "rgba(255,255,255,0.2)" },
-  featureTitle: { fontSize: 15, fontWeight: "700", color: COLORS.text, marginBottom: 2 },
-  featureTitlePrimary: { color: "#fff" },
-  featureDesc: { fontSize: 12, color: COLORS.textSecondary, flex: 1 },
-  featureDescPrimary: { color: "rgba(255,255,255,0.8)" },
-  footer: { marginTop: 32, alignItems: "center", gap: 12 },
-  footerLink: { fontSize: 11, color: COLORS.textMuted, fontWeight: "600", letterSpacing: 1 },
-  copyright: { fontSize: 10, color: COLORS.textMuted, letterSpacing: 2 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", padding: 20 },
-  modalContent: { backgroundColor: COLORS.card, borderRadius: 24, padding: 24, maxWidth: 400 },
+  forgotText: { fontSize: 13, color: COLORS.primary, fontWeight: "600" },
+  
+  // Buttons
+  primaryButton: { backgroundColor: COLORS.primary, borderRadius: 24, paddingVertical: 18, alignItems: "center", marginTop: 8, shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
+  primaryButtonText: { color: "#fff", fontSize: 14, fontWeight: "700", letterSpacing: 1.5 },
+  toggleButton: { paddingVertical: 16, alignItems: "center" },
+  toggleButtonText: { color: COLORS.textMuted, fontSize: 11, fontWeight: "600", letterSpacing: 1.5 },
+  backButton: { paddingVertical: 14, alignItems: "center" },
+  backButtonText: { color: COLORS.textMuted, fontSize: 11, fontWeight: "600", letterSpacing: 1.5 },
+  
+  // Features Section
+  featuresSection: { gap: 12 },
+  featureCardLarge: { backgroundColor: COLORS.card, borderRadius: 32, padding: 20, flexDirection: "row", alignItems: "center", gap: 16, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  featureIconBox: { width: 64, height: 64, borderRadius: 24, backgroundColor: "#f0fdfa", alignItems: "center", justifyContent: "center", marginRight: 4 },
+  featureContent: { flex: 1 },
+  featureTitle: { fontSize: 16, fontWeight: "700", color: COLORS.text, marginBottom: 4 },
+  featureDesc: { fontSize: 12, color: COLORS.textSecondary, lineHeight: 18 },
+  
+  // Primary Feature Card (Verde)
+  featureCardPrimary: { backgroundColor: COLORS.primary, borderRadius: 32, padding: 20, flexDirection: "row", alignItems: "center", gap: 16, shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 6 },
+  featureIconBoxPrimary: { width: 48, height: 48, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" },
+  featureContentPrimary: { flex: 1 },
+  featureTitlePrimary: { fontSize: 16, fontWeight: "700", color: "#fff", marginBottom: 4 },
+  featureDescPrimary: { fontSize: 12, color: "rgba(255,255,255,0.8)", lineHeight: 18 },
+  
+  // Small Feature Card
+  featureCardSmall: { backgroundColor: COLORS.card, borderRadius: 32, padding: 18, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  featureIconBoxSmall: { width: 44, height: 44, borderRadius: 14, backgroundColor: "#f0fdfa", alignItems: "center", justifyContent: "center", marginBottom: 12 },
+  featureTitleSmall: { fontSize: 15, fontWeight: "700", color: COLORS.text, marginBottom: 4 },
+  featureDescSmall: { fontSize: 11, color: COLORS.textSecondary, lineHeight: 16 },
+  
+  // Chart placeholder
+  chartPlaceholder: { flexDirection: "row", alignItems: "flex-end", gap: 6, height: 60 },
+  chartBar: { flex: 1, backgroundColor: COLORS.primary, borderRadius: 4, height: "40%" },
+  chartBar2: { height: "60%" },
+  chartBar3: { height: "35%" },
+  chartBar4: { height: "80%" },
+  chartBar5: { height: "55%" },
+  chartBar6: { height: "70%" },
+  chartBar7: { height: "45%" },
+  
+  // Footer
+  footer: { marginTop: 32, alignItems: "center", gap: 16 },
+  footerLogo: { flexDirection: "row", alignItems: "center", gap: 8 },
+  footerLogoText: { fontSize: 14, fontWeight: "900", color: COLORS.textMuted },
+  footerCopyright: { fontSize: 10, fontWeight: "600", color: COLORS.textMuted, letterSpacing: 2 },
+  footerLinks: { flexDirection: "row", gap: 24 },
+  footerLink: { fontSize: 11, fontWeight: "600", color: COLORS.textSecondary, letterSpacing: 1 },
+  
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", padding: 20 },
+  modalContent: { backgroundColor: COLORS.card, borderRadius: 28, padding: 24, maxWidth: 420 },
   modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 },
   modalTitleRow: { flexDirection: "row", alignItems: "center", flex: 1 },
-  modalIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: "#f0fdfa", alignItems: "center", justifyContent: "center", marginRight: 12 },
+  modalIconBox: { width: 44, height: 44, borderRadius: 14, backgroundColor: "#f0fdfa", alignItems: "center", justifyContent: "center", marginRight: 12 },
   modalTitle: { fontSize: 18, fontWeight: "700", color: COLORS.text, flex: 1 },
   modalClose: { padding: 4 },
   modalBody: { fontSize: 14, color: COLORS.textSecondary, lineHeight: 22, marginBottom: 20 },
-  modalButton: { backgroundColor: "#f3f4f6", borderRadius: 16, paddingVertical: 14, alignItems: "center" },
-  modalButtonText: { color: COLORS.text, fontSize: 14, fontWeight: "600" },
+  modalButton: { backgroundColor: COLORS.zinc100, borderRadius: 18, paddingVertical: 14, alignItems: "center" },
+  modalButtonText: { color: COLORS.text, fontSize: 13, fontWeight: "600" },
 });

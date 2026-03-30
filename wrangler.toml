@@ -7,4 +7,4 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 # As variáveis de ambiente (DATABASE_URL, etc) devem ser configuradas no Painel do Cloudflare
 # Settings > Environment Variables
-APP_URL = "https://sostec.top"
+APP_URL = "https://controles.pages.dev"

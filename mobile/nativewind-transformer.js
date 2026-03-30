@@ -20,14 +20,18 @@ StyleSheet.register(JSON.parse('${config.nativewind.initialData}'));`,
       );
     }
 
-    const relativeOutput = path.relative(path.dirname(filename), config.nativewind.output).replace(/\\/g, "/");
-    const safeImportPath = relativeOutput.startsWith(".") ? relativeOutput : `./${relativeOutput}`;
+    const outputImportPath = process.platform === "win32"
+      ? (() => {
+          const relativeOutput = path.relative(path.dirname(filename), config.nativewind.output).replace(/\\/g, "/");
+          return relativeOutput.startsWith(".") ? relativeOutput : `./${relativeOutput}`;
+        })()
+      : config.nativewind.output;
 
     return metroTransformWorker.transform(
       config,
       projectRoot,
       filename,
-      Buffer.from(`import '${safeImportPath}'`, "utf8"),
+      Buffer.from(`import '${outputImportPath}'`, "utf8"),
       options
     );
   }

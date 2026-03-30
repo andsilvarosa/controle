@@ -1,6 +1,21 @@
+const fs = require("fs");
 const path = require("path");
 const metroTransformWorker = require("metro-transform-worker");
+const { cssToReactNativeRuntime } = require("react-native-css-interop/css-to-rn");
 const { transform: cssInteropTransform } = require("react-native-css-interop/metro/transformer");
+
+async function waitForGeneratedCss(filePath) {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    if (fs.existsSync(filePath)) {
+      return fs.readFileSync(filePath, "utf8");
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  throw new Error(`NativeWind generated CSS not found: ${filePath}`);
+}
+
 async function transform(config, projectRoot, filename, data, options) {
   if (path.resolve(process.cwd(), filename) === config.nativewind.input) {
     if (options.platform !== "web" && options.dev && options.hot) {
@@ -18,17 +33,23 @@ StyleSheet.register(JSON.parse('${config.nativewind.initialData}'));`,
         options
       );
     }
+
     const generatedCssPath = `${config.nativewind.output}.${options.platform !== "web" ? "native" : "web"}.css`;
-    const relativeOutput = path.relative(path.dirname(filename), generatedCssPath).replace(/\\/g, "/");
-    const outputImportPath = relativeOutput.startsWith(".") ? relativeOutput : `./${relativeOutput}`;
+    const generatedCss = await waitForGeneratedCss(generatedCssPath);
+    const runtimeData = JSON.stringify(
+      cssToReactNativeRuntime(generatedCss, config.transformer?.cssToReactNativeRuntime)
+    );
+
     return metroTransformWorker.transform(
       config,
       projectRoot,
       filename,
-      Buffer.from(`import '${outputImportPath}'`, "utf8"),
+      Buffer.from(`require("react-native-css-interop").StyleSheet.register(${runtimeData})`, "utf8"),
       options
     );
   }
+
   return cssInteropTransform(config, projectRoot, filename, data, options);
 }
+
 module.exports.transform = transform;

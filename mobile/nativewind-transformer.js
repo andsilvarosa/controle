@@ -1,7 +1,6 @@
 const path = require("path");
 const metroTransformWorker = require("metro-transform-worker");
 const { transform: cssInteropTransform } = require("react-native-css-interop/metro/transformer");
-
 async function transform(config, projectRoot, filename, data, options) {
   if (path.resolve(process.cwd(), filename) === config.nativewind.input) {
     if (options.platform !== "web" && options.dev && options.hot) {
@@ -19,14 +18,9 @@ StyleSheet.register(JSON.parse('${config.nativewind.initialData}'));`,
         options
       );
     }
-
-    const outputImportPath = process.platform === "win32"
-      ? (() => {
-          const relativeOutput = path.relative(path.dirname(filename), config.nativewind.output).replace(/\\/g, "/");
-          return relativeOutput.startsWith(".") ? relativeOutput : `./${relativeOutput}`;
-        })()
-      : config.nativewind.output;
-
+    const generatedCssPath = `${config.nativewind.output}.${options.platform !== "web" ? "native" : "web"}.css`;
+    const relativeOutput = path.relative(path.dirname(filename), generatedCssPath).replace(/\\/g, "/");
+    const outputImportPath = relativeOutput.startsWith(".") ? relativeOutput : `./${relativeOutput}`;
     return metroTransformWorker.transform(
       config,
       projectRoot,
@@ -35,8 +29,6 @@ StyleSheet.register(JSON.parse('${config.nativewind.initialData}'));`,
       options
     );
   }
-
   return cssInteropTransform(config, projectRoot, filename, data, options);
 }
-
 module.exports.transform = transform;

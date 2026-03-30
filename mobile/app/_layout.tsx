@@ -1,9 +1,9 @@
-import { Stack, useRouter, useSegments } from "expo-router";
-import { useEffect, useState } from "react";
+import { Stack } from "expo-router";
+import type { ErrorBoundaryProps } from "expo-router";
+import { useEffect } from "react";
 import { useFinanceStore } from "../src/store/useFinanceStore";
 import { StatusBar } from "expo-status-bar";
-import { View, ActivityIndicator, Text } from "react-native";
-import * as SplashScreen from 'expo-splash-screen';
+import { View, ActivityIndicator, Text, TouchableOpacity } from "react-native";
 import { TransactionModal } from "../src/components/TransactionModal";
 import { WalletModal } from "../src/components/WalletModal";
 import { CategoryModal } from "../src/components/CategoryModal";
@@ -14,50 +14,35 @@ import { SecurityModal } from "../src/components/SecurityModal";
 import { RecurrenceActionModal } from "../src/components/RecurrenceActionModal";
 import "../global.css";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync().catch(() => {});
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff', padding: 24 }}>
+      <Text style={{ fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 12, textAlign: 'center' }}>
+        Falha ao iniciar o app
+      </Text>
+      <Text style={{ fontSize: 14, color: '#6b7280', marginBottom: 20, textAlign: 'center' }}>
+        {error.message || 'Ocorreu um erro inesperado ao carregar a aplicacao.'}
+      </Text>
+      <TouchableOpacity
+        onPress={retry}
+        style={{ backgroundColor: '#0d9488', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 999 }}
+      >
+        <Text style={{ color: '#ffffff', fontWeight: '700' }}>Tentar novamente</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default function RootLayout() {
-  const { isAuthenticated, isReady, init } = useFinanceStore();
-  const segments = useSegments();
-  const router = useRouter();
-  const [appIsReady, setAppIsReady] = useState(false);
+  const { isReady, init } = useFinanceStore();
 
   useEffect(() => {
-    async function prepare() {
-      try {
-        console.log("RootLayout: Iniciando preparação...");
-        await init();
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setAppIsReady(true);
-      }
-    }
-    prepare();
+    init().catch((e) => {
+      console.warn(e);
+    });
   }, []);
 
-  useEffect(() => {
-    if (appIsReady && isReady) {
-      console.log("RootLayout: App pronto, escondendo splash");
-      SplashScreen.hideAsync().catch(() => {});
-    }
-  }, [appIsReady, isReady]);
-
-  useEffect(() => {
-    if (!isReady || !appIsReady) return;
-
-    const inAuthGroup = segments[0] === '(auth)';
-    const inTabsGroup = segments[0] === '(tabs)';
-    
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (isAuthenticated && !inTabsGroup) {
-      router.replace('/(tabs)/dashboard');
-    }
-  }, [isAuthenticated, isReady, appIsReady, segments]);
-
-  if (!isReady || !appIsReady) {
+  if (!isReady) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' }}>
         <ActivityIndicator size="large" color="#0d9488" />
@@ -70,9 +55,9 @@ export default function RootLayout() {
     <>
       <StatusBar style="auto" />
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="index" />
       </Stack>
       <TransactionModal />
       <WalletModal />

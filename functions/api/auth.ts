@@ -19,7 +19,7 @@ export const onRequestOptions: PagesFunction = async (context) => {
   return new Response(null, { status: 204, headers });
 };
 
-export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY: string, JWT_SECRET: string }> = async (context) => {
+export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY: string, JWT_SECRET: string, APP_URL?: string }> = async (context) => {
   const origin = context.request.headers.get("Origin");
   const headers = getSecurityHeaders(origin);
   const ip = context.request.headers.get("CF-Connecting-IP") || "unknown";
@@ -35,6 +35,19 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
       url.hostname === "sostec.top" || // Domínio principal
       url.hostname.endsWith(".sostec.top") // Subdomínios customizados
     );
+  };
+
+  const getAppUrl = () => {
+    const configuredAppUrl = context.env.APP_URL?.trim();
+    if (configuredAppUrl) {
+      return configuredAppUrl.replace(/\/$/, "");
+    }
+
+    if (origin && isAllowedOrigin(origin)) {
+      return origin.replace(/\/$/, "");
+    }
+
+    return "https://sostec.top";
   };
   
   if (origin && !isAllowedOrigin(origin)) {
@@ -459,9 +472,7 @@ export const onRequestPost: PagesFunction<{ DATABASE_URL: string, RESEND_API_KEY
         const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000); 
 
-        const requestUrl = new URL(context.request.url);
-        const origin = requestUrl.origin;
-        const resetLink = `${origin}/?token=${resetToken}`;
+        const resetLink = `${getAppUrl()}/?token=${resetToken}`;
 
         await sql("DELETE FROM password_resets WHERE user_id = $1", [user.id]);
         await sql("INSERT INTO password_resets (id, user_id, token, expires_at) VALUES ($1, $2, $3, $4)", [crypto.randomUUID(), user.id, resetToken, expiresAt.toISOString()]);

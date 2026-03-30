@@ -15,7 +15,7 @@ export const getSecurityHeaders = (origin: string | null = null) => {
     'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-    'Content-Security-Policy': "default-src 'self' https://esm.sh; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://esm.sh https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://picsum.photos https://*.googleusercontent.com https://grainy-gradients.vercel.app; connect-src 'self' https://*.run.app https://*.sostec.top https://esm.sh https://static.cloudflareinsights.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self';",
+    'Content-Security-Policy': "default-src 'self' https://esm.sh; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://esm.sh https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://picsum.photos https://*.googleusercontent.com https://grainy-gradients.vercel.app; connect-src 'self' https://*.run.app https://*.workers.dev https://*.pages.dev https://*.sostec.top https://esm.sh https://static.cloudflareinsights.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self';",
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
     'X-Permitted-Cross-Domain-Policies': 'none',
   };

@@ -55,6 +55,16 @@ jobs:
         with:
           gradle-version: '8.8'
 
+      - name: Bundle JS into APK
+        working-directory: ./mobile
+        run: npx expo export --platform android
+
+      - name: Copy JS Bundle to Android Assets
+        working-directory: ./mobile
+        run: |
+          mkdir -p android/app/src/main/assets
+          cp -r dist/* android/app/src/main/assets/
+
       - name: Build Android APK
         working-directory: ./mobile/android
         run: |

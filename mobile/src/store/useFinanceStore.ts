@@ -134,12 +134,23 @@ const api = async (endpoint: string, method: string, body?: any) => {
     let data;
     try { data = text ? JSON.parse(text) : {}; } catch (e) { data = {}; }
 
-    if (!res.ok) throw new Error(data.error || `Erro ${res.status}: ${res.statusText}`);
+    if (!res.ok) {
+      const error = new Error(data.error || `Erro ${res.status}: ${res.statusText}`) as Error & { status?: number; data?: any };
+      error.status = res.status;
+      error.data = data;
+      throw error;
+    }
     return data;
   } catch (e: any) {
     console.error(`API Error [${endpoint}]:`, e);
     throw e;
   }
+};
+
+const emptyUser = { name: "", email: "", avatar: "" };
+
+const clearStoredSession = async () => {
+  await AsyncStorage.multiRemove(['sos_token', 'sos_user']);
 };
 
 const normalizeDate = (dateString: string | undefined | null): string => {
@@ -176,6 +187,33 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
   
   // LINHA CORRIGIDA ABAIXO 👇
   const initialTheme = 'light';
+
+  const resetAuthState = () => {
+    set({
+      isAuthenticated: false,
+      isLoading: false,
+      user: emptyUser,
+      is2FAEnabled: false,
+      transactions: [],
+      categories: [],
+      rules: [],
+      wallets: [],
+      budgets: [],
+      recurrenceExceptions: [],
+      activeSessions: [],
+      currentSessionId: null,
+      activeModal: null,
+      pendingBankTransaction: null,
+      recurrencePendingAction: null,
+      editingTransaction: null,
+      editingCategory: null,
+      editingRule: null,
+      editingWallet: null,
+      editingBudget: null,
+      mobileMenuOpen: false,
+      view: 'auth'
+    });
+  };
 
   const applyRules = (t: Transaction): Transaction => {
     const rules = get().rules;
@@ -520,11 +558,17 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
             const res = await api('auth', 'POST', { action: 'check_session' });
             if (res.id) {
                 const userData = { ...res, twoFactorEnabled: res.two_factor_enabled };
+                await AsyncStorage.setItem('sos_user', JSON.stringify(userData));
                 set({ isAuthenticated: true, user: userData, is2FAEnabled: userData.twoFactorEnabled });
                 await get().fetchUserData();
+            } else {
+                await clearStoredSession();
+                resetAuthState();
             }
         } catch (e) {
             console.log("Nenhuma sessão ativa.");
+            await clearStoredSession();
+            resetAuthState();
         } finally {
             set({ isInitialLoading: false });
         }
@@ -580,10 +624,10 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
         
         if (res.token) {
             await AsyncStorage.setItem('sos_token', res.token);
-            await AsyncStorage.setItem('sos_user', JSON.stringify(res));
+            await AsyncStorage.setItem('sos_user', JSON.stringify({ ...res, twoFactorEnabled: res.two_factor_enabled }));
         }
 
-        set({ isAuthenticated: true, user: res, is2FAEnabled: false });
+        set({ isAuthenticated: true, user: { ...res, twoFactorEnabled: res.two_factor_enabled }, is2FAEnabled: false });
         await get().fetchUserData();
         set({ isLoading: false, view: 'dashboard' });
         return { success: true };
@@ -698,8 +742,12 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
                 userId: b.user_id || b.userId 
             }))
           });
-      } catch (e) {
+      } catch (e: any) {
         console.error("Erro ao carregar dados", e);
+        if (e?.status === 401 || e?.status === 403) {
+          await clearStoredSession();
+          resetAuthState();
+        }
       }
     },
 
@@ -902,38 +950,31 @@ export const useFinanceStore = create<FinanceState>((set, get) => {
         if (savedTheme) { set({ theme: savedTheme }); }
         
         const token = await AsyncStorage.getItem('sos_token');
-        const savedUser = await AsyncStorage.getItem('sos_user');
-        
-        if (token && savedUser) { 
-          const parsedUser = JSON.parse(savedUser);
-          console.log("useFinanceStore: Usuário recuperado:", parsedUser.email);
-          set({ isAuthenticated: true, user: parsedUser }); 
-          get().fetchUserData(); 
+        if (token) {
+          await get().checkSession();
         } else {
           console.log("useFinanceStore: Nenhum usuário logado encontrado.");
+          await AsyncStorage.removeItem('sos_user');
+          resetAuthState();
+          set({ isInitialLoading: false });
         }
       } catch (e) {
         console.error("Erro no init:", e);
+        await clearStoredSession();
+        resetAuthState();
+        set({ isInitialLoading: false });
       } finally {
         set({ isReady: true });
         console.log("useFinanceStore: Init finalizado, isReady: true");
       }
     },
     logout: async () => {
-        await AsyncStorage.removeItem('sos_token');
-        await AsyncStorage.removeItem('sos_user');
-        api('auth', 'POST', { action: 'logout' });
-        set({ 
-            isAuthenticated: false, 
-            isReady: true, 
-            user: { name: "", email: "", avatar: "" }, 
-            transactions: [], 
-            categories: [], 
-            rules: [], 
-            wallets: [], 
-            budgets: [], 
-            view: 'auth' 
-        });
+        await clearStoredSession();
+        try {
+            await api('auth', 'POST', { action: 'logout' });
+        } catch (e) {}
+        resetAuthState();
+        set({ isReady: true, isInitialLoading: false });
     }
   };
 });

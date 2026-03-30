@@ -48,11 +48,11 @@ export default function RootLayout() {
     if (!isReady || !appIsReady) return;
 
     const inAuthGroup = segments[0] === '(auth)';
-    const isRoot = segments.length === 0;
+    const inTabsGroup = segments[0] === '(tabs)';
     
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/(auth)/login');
-    } else if (isAuthenticated && (inAuthGroup || isRoot)) {
+    } else if (isAuthenticated && !inTabsGroup) {
       router.replace('/(tabs)/dashboard');
     }
   }, [isAuthenticated, isReady, appIsReady, segments]);

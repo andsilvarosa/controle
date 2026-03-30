@@ -1,14 +1,9 @@
-import { Redirect } from "expo-router";
-import { useFinanceStore } from "../src/store/useFinanceStore";
+import { View, ActivityIndicator } from "react-native";
 
 export default function Index() {
-  const { isAuthenticated, isReady } = useFinanceStore();
-
-  if (!isReady) return null;
-
-  if (isAuthenticated) {
-    return <Redirect href="/(tabs)/dashboard" />;
-  } else {
-    return <Redirect href="/(auth)/login" />;
-  }
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' }}>
+      <ActivityIndicator size="large" color="#0d9488" />
+    </View>
+  );
 }

@@ -48,10 +48,11 @@ export default function RootLayout() {
     if (!isReady || !appIsReady) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const isRoot = segments.length === 0;
     
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/(auth)/login');
-    } else if (isAuthenticated && inAuthGroup) {
+    } else if (isAuthenticated && (inAuthGroup || isRoot)) {
       router.replace('/(tabs)/dashboard');
     }
   }, [isAuthenticated, isReady, appIsReady, segments]);
@@ -69,6 +70,7 @@ export default function RootLayout() {
     <>
       <StatusBar style="auto" />
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
       </Stack>

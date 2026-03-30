@@ -48,22 +48,17 @@ jobs:
           
           # Ensure app/index.tsx exists to prevent blank screen
           mkdir -p app
-          if [ ! -f "app/index.tsx" ]; then
-            cat << 'EOF' > app/index.tsx
-          import { Redirect } from "expo-router";
-          import { useFinanceStore } from "../src/store/useFinanceStore";
+          cat << 'EOF' > app/index.tsx
+          import { View, ActivityIndicator } from "react-native";
 
           export default function Index() {
-            const { isAuthenticated, isReady } = useFinanceStore();
-            if (!isReady) return null;
-            if (isAuthenticated) {
-              return <Redirect href="/(tabs)/dashboard" />;
-            } else {
-              return <Redirect href="/(auth)/login" />;
-            }
+            return (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' }}>
+                <ActivityIndicator size="large" color="#0d9488" />
+              </View>
+            );
           }
           EOF
-          fi
 
           # Fix app.json paths if they have ./
           sed -i 's/\.\/assets/assets/g' app.json

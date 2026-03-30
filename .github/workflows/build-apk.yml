@@ -29,43 +29,23 @@ jobs:
 
       - name: Install Mobile Dependencies
         working-directory: ./mobile
-        run: npm install --legacy-peer-deps
+        run: npm ci --legacy-peer-deps
 
-      - name: Fix Corrupted Images and Missing Files
+      - name: Verify Mobile Assets
         working-directory: ./mobile
+        run: npm run verify:assets
+
+      - name: Set Android Build Metadata
+        working-directory: ./mobile
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
         run: |
-          # Create a valid 1x1 transparent PNG
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | base64 -d > valid_image.png
-          
-          # Replace corrupted images
-          mkdir -p assets
-          cp valid_image.png assets/icon.png
-          cp valid_image.png assets/android-icon-foreground.png
-          cp valid_image.png assets/android-icon-background.png
-          cp valid_image.png assets/splash-icon.png
-          cp valid_image.png assets/favicon.png
-          cp valid_image.png assets/android-icon-monochrome.png
-          
-          # Ensure app/index.tsx exists to prevent blank screen
-          mkdir -p app
-          cat << 'EOF' > app/index.tsx
-          import { View, ActivityIndicator } from "react-native";
-
-          export default function Index() {
-            return (
-              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' }}>
-                <ActivityIndicator size="large" color="#0d9488" />
-              </View>
-            );
-          }
-          EOF
-
-          # Fix app.json paths if they have ./
-          sed -i 's/\.\/assets/assets/g' app.json
+          node -e "const fs=require('fs'); const app=JSON.parse(fs.readFileSync('app.json','utf8')); app.expo.android = { ...(app.expo.android || {}), versionCode: Number(process.env.BUILD_NUMBER || app.expo.android?.versionCode || 1) }; fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n');"
+          echo "APP_VERSION=$(node -p \"require('./app.json').expo.version\")" >> $GITHUB_ENV
 
       - name: Prebuild Android (Expo)
         working-directory: ./mobile
-        run: npx expo prebuild --platform android
+        run: npx expo prebuild --platform android --no-install
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -76,10 +56,14 @@ jobs:
         working-directory: ./mobile/android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleRelease
+
+      - name: Rename APK Artifact
+        run: |
+          cp "mobile/android/app/build/outputs/apk/release/app-release.apk" "mobile/android/app/build/outputs/apk/release/sos-controle-mobile-v${APP_VERSION}-build-${{ github.run_number }}.apk"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug.apk
-          path: mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          name: sos-controle-mobile-v${{ env.APP_VERSION }}-build-${{ github.run_number }}
+          path: mobile/android/app/build/outputs/apk/release/sos-controle-mobile-v${{ env.APP_VERSION }}-build-${{ github.run_number }}.apk

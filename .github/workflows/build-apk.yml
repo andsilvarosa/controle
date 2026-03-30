@@ -58,12 +58,23 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
 
-      - name: Rename APK Artifact
+      - name: Prepare APK Artifact
         run: |
-          cp "mobile/android/app/build/outputs/apk/release/app-release.apk" "mobile/android/app/build/outputs/apk/release/sos-controle-mobile-v${APP_VERSION}-build-${{ github.run_number }}.apk"
+          shopt -s nullglob
+          apks=(mobile/android/app/build/outputs/apk/release/*.apk)
+          if [ ${#apks[@]} -eq 0 ]; then
+            echo "Nenhum APK encontrado em mobile/android/app/build/outputs/apk/release"
+            exit 1
+          fi
+          cp "${apks[0]}" "mobile/android/app/build/outputs/apk/release/sos-controle-mobile-v${APP_VERSION}-build-${{ github.run_number }}.apk"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: sos-controle-mobile-v${{ env.APP_VERSION }}-build-${{ github.run_number }}
           path: mobile/android/app/build/outputs/apk/release/sos-controle-mobile-v${{ env.APP_VERSION }}-build-${{ github.run_number }}.apk
+
+      - name: Debug APK Outputs
+        if: always()
+        run: |
+          ls -R mobile/android/app/build/outputs || true

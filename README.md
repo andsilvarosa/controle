@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="1200" height="475" alt="GHBanner" src="https://raw.githubusercontent.com/andsilvarosa/controle/refs/heads/main/assets/ghbanner.png" />
+  <img width="1200" height="475" alt="GHBanner" src="https://github.com/andsilvarosa/controle/issues/1#issue-4182963317" />
 </div>
 
 <div align="center">

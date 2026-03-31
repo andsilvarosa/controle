@@ -15,6 +15,7 @@ const assetsDir = path.resolve(__dirname, "..", "assets");
 
 for (const file of requiredFiles) {
   const fullPath = path.join(assetsDir, file);
+  console.log(`Verifying asset: ${file}`);
   if (!fs.existsSync(fullPath)) {
     throw new Error(`Missing asset: ${file}`);
   }

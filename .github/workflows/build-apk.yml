@@ -33,6 +33,10 @@ jobs:
         working-directory: ./mobile
         run: npm ci --legacy-peer-deps
 
+      - name: Generate Mobile Assets
+        working-directory: ./mobile
+        run: npm run generate:assets
+
       - name: Verify Mobile Assets
         working-directory: ./mobile
         run: npm run verify:assets

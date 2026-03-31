@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="1200" height="475" alt="GHBanner" src="https://github.com/andsilvarosa/controle/issues/1#issue-4182963317" />
+  <img width="1648" height="640" alt="Image" src="https://github.com/user-attachments/assets/82c3d132-ae8f-406e-a915-c972446fa4f3" />
 </div>
 
 <div align="center">

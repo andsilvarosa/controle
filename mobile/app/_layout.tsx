@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
 import { useFinanceStore } from "../src/store/useFinanceStore";
 import { StatusBar } from "expo-status-bar";
+import { ModalManager } from "../src/components/ModalManager";
 
 export default function RootLayout() {
   const { isReady, init } = useFinanceStore();
@@ -14,7 +15,7 @@ export default function RootLayout() {
   if (!isReady) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#0d9488" />
+        <ActivityIndicator size="large" color="#11C76F" />
         <Text style={styles.loadingText}>Carregando...</Text>
       </View>
     );
@@ -22,12 +23,13 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style="auto" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)/login" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="index" />
       </Stack>
+      <ModalManager />
     </>
   );
 }

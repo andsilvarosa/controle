@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useFinanceStore } from '../store/useFinanceStore';
-import { X, Check } from 'lucide-react-native';
+import { useUIStore } from '../store/useUIStore';
+import { X, Check, Target, PieChart } from 'lucide-react-native';
 
 export function BudgetModal() {
   const { activeModal, setActiveModal, addBudget, updateBudget, editingBudget, setEditingBudget, categories } = useFinanceStore();
+  const { theme } = useUIStore();
+  const isDark = theme === 'dark';
+
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('');
 
@@ -56,53 +60,75 @@ export function BudgetModal() {
       visible={activeModal === 'budget'}
       onRequestClose={resetAndClose}
     >
-      <View className="flex-1 justify-end bg-black/50">
+      <View className="flex-1 justify-end bg-black/60">
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="bg-white rounded-t-3xl p-6"
+          className="bg-brand-gray dark:bg-black rounded-t-[50px] p-10 border-t border-white/10 dark:border-brand-dark/50 shadow-2xl"
         >
-          <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-xl font-bold text-gray-900">
-              {editingBudget ? 'Editar Orçamento' : 'Novo Orçamento'}
-            </Text>
-            <TouchableOpacity onPress={resetAndClose}>
-              <X size={24} color="#9ca3af" />
+          <View className="flex-row justify-between items-center mb-10">
+            <View className="flex-row items-center gap-4">
+              <View className="w-12 h-12 bg-brand-green/10 rounded-2xl items-center justify-center border border-brand-green/20">
+                <Target size={22} color="#11C76F" />
+              </View>
+              <View>
+                <Text className="text-2xl font-black text-brand-dark dark:text-white tracking-tight">
+                  {editingBudget ? 'Editar Orçamento' : 'Novo Orçamento'}
+                </Text>
+                <Text className="text-[10px] font-bold text-brand-dark/40 dark:text-brand-gray/40 uppercase tracking-widest">Planejamento Mensal</Text>
+              </View>
+            </View>
+            <TouchableOpacity 
+              onPress={resetAndClose}
+              className="w-12 h-12 bg-white dark:bg-brand-dark rounded-full items-center justify-center border border-brand-gray/10 dark:border-brand-dark"
+            >
+              <X size={22} color={isDark ? "#F5F5F5" : "#000000"} />
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} className="max-h-[80vh]">
-            <View className="mb-4">
-              <Text className="text-gray-500 mb-2">Valor Mensal (R$)</Text>
-              <TextInput
-                className="bg-gray-100 p-4 rounded-xl text-gray-900"
-                placeholder="Ex: 500,00"
-                keyboardType="numeric"
-                value={amount}
-                onChangeText={setAmount}
-              />
+          <ScrollView showsVerticalScrollIndicator={false} className="max-h-[75vh]">
+            <View className="mb-8">
+              <Text className="text-[10px] font-bold text-brand-dark/30 dark:text-brand-gray/30 uppercase tracking-[0.3em] ml-4 mb-3">Valor Mensal</Text>
+              <View className="flex-row items-center bg-white dark:bg-brand-dark rounded-[30px] border border-brand-gray/10 dark:border-brand-dark overflow-hidden shadow-sm">
+                <View className="bg-brand-gray/50 dark:bg-brand-dark/80 px-6 py-6 border-r border-brand-gray/10 dark:border-brand-dark">
+                  <Text className="text-brand-dark/40 dark:text-brand-gray/40 font-black text-xs">R$</Text>
+                </View>
+                <TextInput
+                  className="flex-1 p-6 text-brand-dark dark:text-white font-black text-2xl"
+                  placeholder="0,00"
+                  placeholderTextColor={isDark ? "#4A4A4A" : "#94a3b8"}
+                  keyboardType="numeric"
+                  value={amount}
+                  onChangeText={setAmount}
+                />
+              </View>
             </View>
 
-            <View className="mb-6">
-              <Text className="text-gray-500 mb-2">Categoria:</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
-                {categories.map(c => (
-                  <TouchableOpacity
-                    key={c.id}
-                    onPress={() => setCategoryId(c.id)}
-                    className={`px-4 py-2 rounded-full border ${categoryId === c.id ? 'bg-teal-600 border-teal-600' : 'border-gray-200'}`}
-                  >
-                    <Text className={`${categoryId === c.id ? 'text-white' : 'text-gray-600'}`}>{c.name}</Text>
-                  </TouchableOpacity>
-                ))}
+            <View className="mb-10">
+              <Text className="text-[10px] font-bold text-brand-dark/30 dark:text-brand-gray/30 uppercase tracking-[0.3em] ml-4 mb-5">Categoria do Orçamento</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-4">
+                {categories.map(c => {
+                  const isSelected = categoryId === c.id;
+                  return (
+                    <TouchableOpacity
+                      key={c.id}
+                      onPress={() => setCategoryId(c.id)}
+                      className={`px-6 py-4 rounded-[20px] border ${isSelected ? 'bg-brand-green border-brand-green shadow-lg shadow-brand-green/20' : 'bg-white dark:bg-brand-dark border-brand-gray/10 dark:border-brand-dark shadow-sm'}`}
+                    >
+                      <Text className={`font-black text-[10px] uppercase tracking-[0.2em] ${isSelected ? 'text-white' : 'text-brand-dark/60 dark:text-brand-gray/60'}`}>{c.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </ScrollView>
             </View>
 
             <TouchableOpacity
               onPress={handleSave}
-              className="bg-teal-600 py-4 rounded-xl items-center mb-4"
+              className="bg-brand-green py-8 rounded-[30px] items-center shadow-2xl shadow-brand-green/30 mb-12"
             >
-              <Text className="text-white font-bold text-lg">Salvar</Text>
+              <Text className="text-white font-black text-lg tracking-tight uppercase">Salvar Orçamento</Text>
             </TouchableOpacity>
+            
+            <View className="h-16" />
           </ScrollView>
         </KeyboardAvoidingView>
       </View>

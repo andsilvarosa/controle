@@ -36,9 +36,9 @@ export default function Reports() {
         <Text className="text-2xl font-bold text-gray-900 mb-6">Relatórios</Text>
 
         <View className="flex-row gap-4 mb-6">
-          <View className="flex-1 bg-white p-4 rounded-2xl shadow-sm border-l-4 border-green-500">
+          <View className="flex-1 bg-white p-4 rounded-2xl shadow-sm border-l-4 border-brand-green">
             <View className="flex-row items-center mb-2">
-              <TrendingUp size={16} color="#22c55e" />
+              <TrendingUp size={16} color="#11C76F" />
               <Text className="text-gray-500 text-xs ml-1 font-medium">Receitas</Text>
             </View>
             <Text className="text-lg font-bold text-gray-900">R$ {income.toFixed(2)}</Text>
@@ -57,17 +57,17 @@ export default function Reports() {
           <View className="flex-row items-center justify-between mb-4">
             <View>
               <Text className="text-gray-400 text-xs">Saldo Líquido</Text>
-              <Text className={`text-2xl font-bold ${balance >= 0 ? 'text-teal-600' : 'text-red-600'}`}>
+              <Text className={`text-2xl font-bold ${balance >= 0 ? 'text-brand-green' : 'text-red-600'}`}>
                 R$ {balance.toFixed(2)}
               </Text>
             </View>
-            <View className="w-12 h-12 bg-teal-50 rounded-full items-center justify-center">
-              <BarChart3 size={24} color="#0d9488" />
+            <View className="w-12 h-12 bg-brand-green/10 rounded-full items-center justify-center">
+              <BarChart3 size={24} color="#11C76F" />
             </View>
           </View>
           <View className="h-2 bg-gray-100 rounded-full overflow-hidden">
             <View 
-              className="h-full bg-teal-500" 
+              className="h-full bg-brand-green" 
               style={{ width: `${income > 0 ? Math.min(100, (expense / income) * 100) : 0}%` }} 
             />
           </View>

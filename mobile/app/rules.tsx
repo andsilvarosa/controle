@@ -41,7 +41,7 @@ export default function Rules() {
         <Text className="text-2xl font-bold text-gray-900 flex-1">Regras</Text>
         <TouchableOpacity 
           onPress={handleAdd}
-          className="p-2 bg-teal-600 rounded-full"
+          className="p-2 bg-brand-green rounded-full"
         >
           <Plus size={24} color="white" />
         </TouchableOpacity>
@@ -70,7 +70,7 @@ export default function Rules() {
                 <Switch 
                   value={rule.active} 
                   onValueChange={() => toggleRule(rule.id)}
-                  trackColor={{ false: "#d1d5db", true: "#0d9488" }}
+                  trackColor={{ false: "#d1d5db", true: "#11C76F" }}
                 />
               </View>
               <View className="flex-row items-center justify-between">

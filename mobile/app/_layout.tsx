@@ -14,7 +14,7 @@ export default function RootLayout() {
   if (!isReady) {
     return (
       <View style={styles.loading}>
-        <ActivityIndicator size="large" color="#0d9488" />
+        <ActivityIndicator size="large" color="#11C76F" />
         <Text style={styles.loadingText}>Carregando...</Text>
       </View>
     );

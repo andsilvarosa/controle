@@ -22,7 +22,7 @@ export default function Wallets() {
           <Text className="text-2xl font-bold text-gray-900">Minhas Carteiras</Text>
           <TouchableOpacity 
             onPress={handleAdd}
-            className="p-2 bg-teal-600 rounded-full"
+            className="p-2 bg-brand-green rounded-full"
           >
             <Plus size={24} color="white" />
           </TouchableOpacity>
@@ -41,10 +41,10 @@ export default function Wallets() {
               key={wallet.id}
               onPress={() => handleEdit(wallet)}
               className="bg-white p-5 rounded-2xl mb-4 shadow-sm flex-row items-center border-l-4"
-              style={{ borderLeftColor: wallet.color || '#0d9488' }}
+              style={{ borderLeftColor: wallet.color || '#11C76F' }}
             >
-              <View className="w-12 h-12 bg-teal-100 rounded-full items-center justify-center mr-4">
-                <WalletIcon size={24} color="#0d9488" />
+              <View className="w-12 h-12 bg-brand-green/10 rounded-full items-center justify-center mr-4">
+                <WalletIcon size={24} color="#11C76F" />
               </View>
               <View className="flex-1">
                 <Text className="text-lg font-bold text-gray-900">{wallet.name}</Text>

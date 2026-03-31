@@ -33,21 +33,21 @@ import {
 } from "lucide-react-native";
 
 const COLORS = {
-  primary: "#0d9488",
-  primaryDark: "#0f766e",
-  primaryLight: "#14b8a6",
-  background: "#f5f5f5",
+  primary: "#11C76F",
+  primaryDark: "#0EAB5F",
+  primaryLight: "#D1F3E2",
+  background: "#f8fafc",
   card: "#ffffff",
-  text: "#111827",
-  textSecondary: "#6b7280",
-  textMuted: "#9ca3af",
-  border: "#e5e7eb",
-  error: "#dc2626",
+  text: "#1e293b",
+  textSecondary: "#64748b",
+  textMuted: "#94a3b8",
+  border: "#e2e8f0",
+  error: "#ef4444",
   errorBg: "#fef2f2",
-  success: "#059669",
-  successBg: "#ecfdf5",
-  zinc50: "#fafafa",
-  zinc100: "#f4f4f5",
+  success: "#11C76F",
+  successBg: "#E8F9F1",
+  zinc50: "#f8fafc",
+  zinc100: "#f1f5f9",
 };
 
 type AuthMode = "login" | "signup" | "recovery" | "twoFactor";
@@ -119,7 +119,7 @@ export default function Login() {
       setError("As senhas não coincidem.");
       return;
     }
-    const result = await signup({ name, email, phone, password, avatar: "icon:User:teal" });
+    const result = await signup({ name, email, phone, password, avatar: "icon:User:brand-green" });
     if (!result.success) {
       setError(result.message || "Erro ao criar conta.");
     }

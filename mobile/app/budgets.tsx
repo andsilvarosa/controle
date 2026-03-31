@@ -57,7 +57,7 @@ export default function Budgets() {
         <Text className="text-2xl font-bold text-gray-900 flex-1">Orçamentos</Text>
         <TouchableOpacity 
           onPress={handleAdd}
-          className="p-2 bg-teal-600 rounded-full"
+          className="p-2 bg-brand-green rounded-full"
         >
           <Plus size={24} color="white" />
         </TouchableOpacity>
@@ -96,7 +96,7 @@ export default function Budgets() {
                 <View className="flex-row justify-between items-end mb-2">
                   <View>
                     <Text className="text-gray-400 text-xs">Gasto</Text>
-                    <Text className={`text-lg font-bold ${isExceeded ? 'text-red-600' : 'text-teal-600'}`}>
+                    <Text className={`text-lg font-bold ${isExceeded ? 'text-red-600' : 'text-brand-green'}`}>
                       R$ {spent.toFixed(2)}
                     </Text>
                   </View>
@@ -108,7 +108,7 @@ export default function Budgets() {
 
                 <View className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <View 
-                    className={`h-full rounded-full ${isExceeded ? 'bg-red-500' : 'bg-teal-500'}`}
+                    className={`h-full rounded-full ${isExceeded ? 'bg-red-500' : 'bg-brand-green'}`}
                     style={{ width: `${percent}%` }}
                   />
                 </View>

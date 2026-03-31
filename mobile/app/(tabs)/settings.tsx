@@ -10,23 +10,23 @@ export default function Settings() {
   const settingsItems = [
     { icon: User, label: "Perfil", color: "#3b82f6", action: () => {} },
     { icon: Bell, label: "Notificações", color: "#f59e0b", action: () => {} },
-    { icon: Shield, label: "Segurança", color: "#10b981", action: () => {} },
+    { icon: Shield, label: "Segurança", color: "#11C76F", action: () => {} },
   ];
 
   const manageItems = [
     { icon: LayoutGrid, label: "Categorias", color: "#8b5cf6", action: () => router.push('/categories') },
     { icon: ListFilter, label: "Regras de Importação", color: "#ec4899", action: () => router.push('/rules') },
-    { icon: Target, label: "Orçamentos", color: "#10b981", action: () => router.push('/budgets') },
+    { icon: Target, label: "Orçamentos", color: "#11C76F", action: () => router.push('/budgets') },
   ];
 
   return (
     <ScrollView className="flex-1 bg-gray-50">
       <View className="p-6 bg-white border-b border-gray-100 items-center">
-        <View className="w-24 h-24 bg-teal-100 rounded-full items-center justify-center mb-4 overflow-hidden">
+        <View className="w-24 h-24 bg-brand-green/10 rounded-full items-center justify-center mb-4 overflow-hidden">
           {user.avatar ? (
             <Image source={{ uri: user.avatar }} className="w-full h-full" />
           ) : (
-            <User size={48} color="#0d9488" />
+            <User size={48} color="#11C76F" />
           )}
         </View>
         <Text className="text-xl font-bold text-gray-900">{user.name || "Usuário"}</Text>
@@ -92,7 +92,7 @@ export default function Settings() {
               )}
             </View>
             <Text className="flex-1 text-gray-700 font-medium">Tema Escuro</Text>
-            <View className={`w-12 h-6 rounded-full p-1 ${theme === 'dark' ? 'bg-teal-600' : 'bg-gray-200'}`}>
+            <View className={`w-12 h-6 rounded-full p-1 ${theme === 'dark' ? 'bg-brand-green' : 'bg-gray-200'}`}>
                 <View className={`w-4 h-4 bg-white rounded-full ${theme === 'dark' ? 'translate-x-6' : ''}`} />
             </View>
           </TouchableOpacity>

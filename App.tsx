@@ -28,7 +28,7 @@ const Budgets = lazy(() => import('./pages/Budgets').then(m => ({ default: m.Bud
 const PageLoader = () => (
   <div className="flex items-center justify-center h-full w-full min-h-[400px]">
     <div className="flex flex-col items-center gap-3 text-slate-400 dark:text-slate-500">
-      <Loader2 size={40} className="animate-spin text-teal-500" />
+      <Loader2 size={40} className="animate-spin text-brand-green" />
       <p className="text-sm font-bold animate-pulse tracking-wide">Carregando...</p>
     </div>
   </div>
@@ -75,7 +75,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-brand-green border-t-transparent rounded-full animate-spin" />
           <p className="text-slate-600 dark:text-slate-400 font-medium">Carregando sua sessão...</p>
         </div>
       </div>

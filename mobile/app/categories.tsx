@@ -37,7 +37,7 @@ export default function Categories() {
         <Text className="text-2xl font-bold text-gray-900 flex-1">Categorias</Text>
         <TouchableOpacity 
           onPress={handleAdd}
-          className="p-2 bg-teal-600 rounded-full"
+          className="p-2 bg-brand-green rounded-full"
         >
           <Plus size={24} color="white" />
         </TouchableOpacity>
@@ -57,7 +57,7 @@ export default function Categories() {
             >
               <View className="flex-1">
                 <Text className="text-lg font-bold text-gray-900">{category.name}</Text>
-                <Text className={`text-xs font-medium uppercase ${category.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                <Text className={`text-xs font-medium uppercase ${category.type === 'income' ? 'text-brand-green' : 'text-red-600'}`}>
                   {category.type === 'income' ? 'Receita' : 'Despesa'}
                 </Text>
               </View>

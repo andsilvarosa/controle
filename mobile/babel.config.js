@@ -6,14 +6,6 @@ module.exports = function (api) {
       "nativewind/babel",
     ],
     plugins: [
-      [
-        "module-resolver",
-        {
-          alias: {
-            "react-native-worklets": require.resolve("react-native-worklets"),
-          },
-        },
-      ],
       "react-native-reanimated/plugin",
     ],
   };

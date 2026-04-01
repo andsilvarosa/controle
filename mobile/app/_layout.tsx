@@ -9,7 +9,13 @@ export default function RootLayout() {
   const { isReady, init } = useFinanceStore();
 
   useEffect(() => {
-    init().catch(console.warn);
+    try {
+      init().catch((err) => {
+        console.error("RootLayout: Erro ao inicializar:", err);
+      });
+    } catch (err) {
+      console.error("RootLayout: Erro síncrono no useEffect:", err);
+    }
   }, []);
 
   if (!isReady) {
@@ -21,17 +27,27 @@ export default function RootLayout() {
     );
   }
 
-  return (
-    <>
-      <StatusBar style="auto" />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(auth)/login" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="index" />
-      </Stack>
-      <ModalManager />
-    </>
-  );
+  try {
+    return (
+      <>
+        <StatusBar style="auto" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(auth)/login" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="index" />
+        </Stack>
+        <ModalManager />
+      </>
+    );
+  } catch (err) {
+    return (
+      <View style={styles.loading}>
+        <Text style={{ color: 'red', textAlign: 'center', padding: 20 }}>
+          Erro ao renderizar o aplicativo: {String(err)}
+        </Text>
+      </View>
+    );
+  }
 }
 
 const styles = StyleSheet.create({

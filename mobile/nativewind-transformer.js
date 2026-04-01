@@ -3,8 +3,28 @@ const path = require("path");
 const { cssToReactNativeRuntime } = require("react-native-css-interop/css-to-rn");
 
 async function transform(config, projectRoot, filename, data, options) {
-  const originalTransformerPath = config.transformer.originalBabelTransformerPath;
-  const originalTransformer = require(originalTransformerPath);
+  // Tenta obter o transformer original de várias formas seguras
+  const transformerConfig = config || {};
+  const originalTransformerPath = transformerConfig.originalBabelTransformerPath || 
+                                 (transformerConfig.transformer && transformerConfig.transformer.originalBabelTransformerPath);
+  
+  let originalTransformer;
+  try {
+    // Tenta carregar o transformer original se o caminho estiver disponível
+    if (originalTransformerPath) {
+      originalTransformer = require(originalTransformerPath);
+    } else {
+      // Fallback para o transformer do Expo ou Metro
+      try {
+        originalTransformer = require("@expo/metro-config/build/transform-worker/metro-transform-worker");
+      } catch (e) {
+        originalTransformer = require("metro-transform-worker");
+      }
+    }
+  } catch (e) {
+    // Fallback final
+    originalTransformer = require("metro-transform-worker");
+  }
 
   // Garantir que filename seja uma string antes de usar métodos de path ou string
   if (typeof filename !== 'string') {

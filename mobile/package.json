@@ -32,7 +32,7 @@
     "react-native": "0.76.9",
     "react-native-css-interop": "^0.1.22",
     "react-native-gesture-handler": "~2.20.2",
-    "react-native-reanimated": "~3.16.1",
+    "react-native-reanimated": "^4.3.0",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
     "react-native-svg": "15.8.0",
@@ -40,7 +40,8 @@
     "zustand": "^5.0.0-rc.2"
   },
   "devDependencies": {
-    "pngjs": "3.4.0"
+    "pngjs": "3.4.0",
+    "react-native-worklets": "0.8.1"
   },
   "private": true
 }

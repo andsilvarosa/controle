@@ -1,3 +1,4 @@
+import "react-native-reanimated";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
 import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
@@ -6,6 +7,8 @@ import { StatusBar } from "expo-status-bar";
 import { ModalManager } from "../src/components/ModalManager";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import "../global.css";
 
 // Mantém a splash screen visível até que o app esteja pronto
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -46,15 +49,17 @@ export default function RootLayout() {
   console.log("[RootLayout] App pronto, renderizando stack...");
   try {
     return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <StatusBar style="auto" />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)/login" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="index" />
-        </Stack>
-        <ModalManager />
-      </GestureHandlerRootView>
+      <SafeAreaProvider>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <StatusBar style="auto" />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)/login" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="index" />
+          </Stack>
+          <ModalManager />
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
     );
   } catch (err) {
     console.error("[RootLayout] Erro de renderização fatal:", err);

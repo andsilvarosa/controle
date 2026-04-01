@@ -1,12 +1,14 @@
 const fs = require("fs");
 const path = require("path");
-const metroTransformWorker = require("metro-transform-worker");
 const { cssToReactNativeRuntime } = require("react-native-css-interop/css-to-rn");
 
 async function transform(config, projectRoot, filename, data, options) {
+  const originalTransformerPath = config.transformer.originalBabelTransformerPath;
+  const originalTransformer = require(originalTransformerPath);
+
   // Garantir que filename seja uma string antes de usar métodos de path ou string
   if (typeof filename !== 'string') {
-    return metroTransformWorker.transform(config, projectRoot, filename, data, options);
+    return originalTransformer.transform(config, projectRoot, filename, data, options);
   }
 
   const absolutePath = path.isAbsolute(filename) ? filename : path.resolve(projectRoot || "", filename);
@@ -57,7 +59,7 @@ async function transform(config, projectRoot, filename, data, options) {
       try {
         console.log(`[NativeWind] Found generated CSS at: ${foundPath}`);
         const runtimeData = JSON.stringify(cssToReactNativeRuntime(generatedCss));
-        return metroTransformWorker.transform(
+        return originalTransformer.transform(
           config,
           projectRoot,
           filename,
@@ -71,7 +73,7 @@ async function transform(config, projectRoot, filename, data, options) {
     
     // Se falhar em encontrar o CSS gerado, tenta retornar um CSS vazio para não quebrar o bundle
     console.warn(`[NativeWind] Warning: Generated CSS not found in ${cacheDir}. Returning empty styles.`);
-    return metroTransformWorker.transform(
+    return originalTransformer.transform(
       config,
       projectRoot,
       filename,
@@ -80,8 +82,8 @@ async function transform(config, projectRoot, filename, data, options) {
     );
   }
 
-  // Para outros arquivos, usa o transformer padrão (babel-preset-expo)
-  return metroTransformWorker.transform(config, projectRoot, filename, data, options);
+  // Para outros arquivos, usa o transformer original
+  return originalTransformer.transform(config, projectRoot, filename, data, options);
 }
 
 module.exports.transform = transform;

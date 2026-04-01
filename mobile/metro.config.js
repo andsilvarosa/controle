@@ -15,6 +15,7 @@ const nativeWindConfig = withNativeWind(config, {
 
 // Sobrescreve o transformer para garantir que o global.css seja tratado corretamente
 const originalTransformerPath = nativeWindConfig.transformer.babelTransformerPath;
-nativeWindConfig.transformer.babelTransformerPath = require.resolve("./nativewind-transformer.js");
+nativeWindConfig.transformer.babelTransformerPath = path.resolve(__dirname, "nativewind-transformer.js");
+nativeWindConfig.transformer.originalBabelTransformerPath = originalTransformerPath;
 
 module.exports = nativeWindConfig;

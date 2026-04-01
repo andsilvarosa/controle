@@ -177,29 +177,15 @@ export default function Login() {
     } else if (mode === "twoFactor") handleTwoFactor();
   };
 
-  const getTitle = () => {
-    if (mode === "recovery") return "Recuperar conta";
-    if (mode === "twoFactor") return "Segurança";
-    if (mode === "signup") return "Crie sua conta grátis";
-    return "Bem-vindo de volta!";
-  };
-
-  const getSubtitle = () => {
-    if (mode === "recovery") return "Siga as instruções para redefinir sua senha";
-    if (mode === "twoFactor") return "Confirme sua identidade para continuar";
-    if (mode === "signup") return "Comece sua jornada financeira hoje mesmo";
-    return "Acesse sua conta para gerenciar suas finanças";
-  };
-
   const renderInput = (Icon: any, value: string, onChange: (t: string) => void, placeholder: string, isPassword = false, keyboardType: any = "default", maxLength?: number) => (
     <View className="mb-4 relative justify-center">
       <View className="absolute left-4 z-10">
-        <Icon size={20} color={isDark ? "#9ca3af" : "#9ca3af"} />
+        <Icon size={20} color="#9ca3af" />
       </View>
       <TextInput
-        className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-white font-medium text-base"
+        className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 rounded-2xl text-gray-900 dark:text-white font-medium text-base"
         placeholder={placeholder}
-        placeholderTextColor={isDark ? "#9ca3af" : "#9ca3af"}
+        placeholderTextColor="#9ca3af"
         value={value}
         onChangeText={onChange}
         secureTextEntry={isPassword && !showPassword}
@@ -222,48 +208,47 @@ export default function Login() {
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
           
           {/* CARD DE AUTENTICAÇÃO "SPLIT" */}
-          <View className="w-full bg-white dark:bg-[#18181b] rounded-3xl overflow-hidden flex-col border border-black/5 dark:border-white/5 shadow-2xl" style={{ elevation: 10 }}>
+          <View className="w-full bg-white dark:bg-zinc-900 rounded-[48px] overflow-hidden flex-col border border-black/[0.02] dark:border-white/[0.05] shadow-2xl" style={{ elevation: 15 }}>
             
             {/* LADO ESQUERDO: BRANDING (VERDE PICPAY) */}
             <View className="w-full bg-picpay-500 p-10 relative overflow-hidden">
+              {/* Efeito de Brilho no Fundo */}
+              <View className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full" style={{ transform: [{ translateX: 128 }, { translateY: -128 }], opacity: 0.5 }} />
+              <View className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full" style={{ transform: [{ translateX: -96 }, { translateY: 96 }], opacity: 0.3 }} />
+
               <View className="relative z-10">
                 <View className="flex-row items-center gap-3 mb-12">
-                  <MainLogo size={48} />
+                  <View className="p-2.5 bg-white rounded-2xl shadow-lg">
+                    <MainLogo size={32} />
+                  </View>
                   <Text className="font-black text-2xl tracking-tighter text-white">SOS Controle</Text>
                 </View>
 
-                <Text className="text-4xl font-bold text-white leading-tight mb-4 tracking-tight">
-                  Seu dinheiro, {"\n"}
-                  <Text className="text-picpay-100">sob controle.</Text>
+                <Text className="text-3xl font-bold text-white leading-tight mb-6 tracking-tight">
+                  Sua vida financeira {"\n"}
+                  <Text className="opacity-70">em um só lugar.</Text>
                 </Text>
 
-                <Text className="text-picpay-50 text-base font-medium leading-relaxed max-w-[280px]">
-                  A plataforma definitiva para gerenciar suas finanças com inteligência e simplicidade.
+                <Text className="text-white/80 text-sm font-medium leading-relaxed max-w-[280px]">
+                  Gerencie seus gastos, planeje seu futuro e alcance seus objetivos com inteligência.
                 </Text>
               </View>
 
               {/* Trust Indicators */}
-              <View className="relative z-10 mt-12 pt-12 border-t border-white/20">
-                <View className="flex-row items-center gap-4 mb-4">
+              <View className="relative z-10 mt-12">
+                <View className="flex-row items-center gap-4">
                   <View className="flex-row">
                     {[1,2,3,4].map(i => (
                       <View key={i} className="w-10 h-10 rounded-full border-2 border-picpay-500 bg-white/20 items-center justify-center overflow-hidden -ml-3 first:ml-0">
-                        <Image source={{ uri: `https://picsum.photos/seed/user${i}/100/100` }} className="w-full h-full" />
+                        <Image source={{ uri: `https://picsum.photos/seed/user${i}/100/100` }} className="w-full h-full opacity-80" />
                       </View>
                     ))}
                     <View className="w-10 h-10 rounded-full border-2 border-picpay-500 bg-white items-center justify-center -ml-3">
-                      <Text className="text-xs font-bold text-picpay-500">+10k</Text>
+                      <Text className="text-[10px] font-black text-picpay-500">+10k</Text>
                     </View>
-                  </View>
-                  <View>
-                    <View className="flex-row items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <Sparkles key={i} size={16} color="#facc15" fill="#facc15" />
-                      ))}
-                    </View>
-                    <Text className="text-white text-sm font-medium mt-1">Junte-se a milhares de usuários</Text>
                   </View>
                 </View>
+                <Text className="text-white/60 text-[10px] font-bold uppercase tracking-widest mt-3">Junte-se a milhares de usuários</Text>
               </View>
             </View>
 
@@ -272,10 +257,10 @@ export default function Login() {
               
               <View className="mb-10">
                 <Text className="text-2xl font-bold text-brand-dark dark:text-white mb-2">
-                  {getTitle()}
+                  {mode === "recovery" ? "Recuperar conta" : mode === "twoFactor" ? "Segurança" : (mode === "login" ? "Bem-vindo de volta!" : "Crie sua conta grátis")}
                 </Text>
-                <Text className="text-[#a1a1aa] text-sm font-medium">
-                  {getSubtitle()}
+                <Text className="text-zinc-400 text-sm font-medium">
+                  {mode === "recovery" ? "Siga as instruções para redefinir sua senha" : mode === "twoFactor" ? "Confirme sua identidade para continuar" : (mode === "login" ? "Acesse sua conta para gerenciar suas finanças" : "Comece sua jornada financeira hoje mesmo")}
                 </Text>
               </View>
 
@@ -301,10 +286,10 @@ export default function Login() {
                     </View>
                   </View>
                   <TextInput
-                    className="w-full px-4 py-5 bg-[#fafafa] dark:bg-[#27272a] border-2 border-transparent rounded-3xl text-[#18181b] dark:text-white font-bold text-3xl text-center mb-6"
+                    className="w-full px-4 py-5 bg-[#fafafa] dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-3xl text-brand-dark dark:text-white font-bold text-3xl text-center mb-6"
                     style={{ letterSpacing: 6 }}
                     placeholder="000000"
-                    placeholderTextColor={isDark ? "#a1a1aa" : "#a1a1aa"}
+                    placeholderTextColor={isDark ? "#52525b" : "#a1a1aa"}
                     value={twoFactorCode}
                     onChangeText={(t) => setTwoFactorCode(t.replace(/\D/g, "").slice(0, 6))}
                     keyboardType="number-pad"
@@ -363,10 +348,10 @@ export default function Login() {
                   {mode === "login" && (
                     <View className="flex-row justify-between items-center px-2 mb-2">
                       <TouchableOpacity className="flex-row items-center gap-2.5" onPress={() => setRememberMe(!rememberMe)}>
-                        <View className={`w-5 h-5 rounded-lg border-2 items-center justify-center ${rememberMe ? 'bg-picpay-500 border-picpay-500' : 'border-[#e4e4e7] dark:border-[#3f3f46]'}`}>
+                        <View className={`w-5 h-5 rounded-lg border-2 items-center justify-center ${rememberMe ? 'bg-picpay-500 border-picpay-500' : 'border-zinc-200 dark:border-zinc-700'}`}>
                           {rememberMe && <Check size={14} color="#fff" strokeWidth={3} />}
                         </View>
-                        <Text className="text-xs font-bold text-[#a1a1aa]">Lembrar</Text>
+                        <Text className="text-xs font-bold text-zinc-400">Lembrar</Text>
                       </TouchableOpacity>
                       <TouchableOpacity onPress={() => { resetForm(); setMode("recovery"); }}>
                         <Text className="text-xs font-bold text-picpay-500">Esqueceu a senha?</Text>
@@ -393,7 +378,7 @@ export default function Login() {
                       className="w-full py-4 items-center"
                       onPress={() => { resetForm(); setMode(mode === "login" ? "signup" : "login"); }}
                     >
-                      <Text className="text-[#a1a1aa] font-bold uppercase tracking-widest text-[10px]">
+                      <Text className="text-zinc-400 font-bold uppercase tracking-widest text-[10px]">
                         {mode === "login" ? "Não tem uma conta? Cadastre-se" : "Já tem uma conta? Faça login"}
                       </Text>
                     </TouchableOpacity>

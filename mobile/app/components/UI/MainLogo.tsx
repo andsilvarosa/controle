@@ -16,9 +16,6 @@ export const MainLogo: React.FC<MainLogoProps> = ({ className = "", size = 64 })
         viewBox="0 0 100 100" 
         fill="none" 
       >
-        {/* Fundo Squircle Branco */}
-        <Rect width="100" height="100" rx="32" fill="white" />
-        
         {/* Círculo de Fundo Verde PicPay */}
         <Circle cx="50" cy="50" r="36" fill="#11C76F" />
         <Circle cx="50" cy="50" r="32" stroke="white" strokeWidth="1.5" strokeDasharray="4 4" opacity="0.2" />

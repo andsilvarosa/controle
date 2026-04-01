@@ -111,6 +111,8 @@ interface FinanceState {
 
 // 🎫 O APP AGORA SABE ENVIAR O CRACHÁ NAS REQUISIÇÕES
 const api = async (endpoint: string, method: string, body?: any) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
   try {
     const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'https://sos-controle-api.andsilvarosa.workers.dev';
     const url = `${API_BASE}/api/${endpoint}`;
@@ -127,8 +129,10 @@ const api = async (endpoint: string, method: string, body?: any) => {
       method,
       headers,
       credentials: 'same-origin',
-      body: body ? JSON.stringify(body) : undefined
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     
     const text = await res.text();
     let data;
@@ -142,6 +146,11 @@ const api = async (endpoint: string, method: string, body?: any) => {
     }
     return data;
   } catch (e: any) {
+    clearTimeout(timeoutId);
+    if (e.name === 'AbortError') {
+      console.error(`API Timeout [${endpoint}]`);
+      throw new Error('Tempo de resposta excedido. Verifique sua conexão.');
+    }
     console.error(`API Error [${endpoint}]:`, e);
     throw e;
   }

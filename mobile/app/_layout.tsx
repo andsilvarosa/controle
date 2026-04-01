@@ -9,16 +9,20 @@ export default function RootLayout() {
   const { isReady, init } = useFinanceStore();
 
   useEffect(() => {
+    console.log("[RootLayout] Initializing app...");
     try {
-      init().catch((err) => {
-        console.error("RootLayout: Erro ao inicializar:", err);
-      });
+      init()
+        .then(() => console.log("[RootLayout] App initialized successfully"))
+        .catch((err) => {
+          console.error("[RootLayout] Error during init:", err);
+        });
     } catch (err) {
-      console.error("RootLayout: Erro síncrono no useEffect:", err);
+      console.error("[RootLayout] Synchronous error in useEffect:", err);
     }
   }, []);
 
   if (!isReady) {
+    console.log("[RootLayout] App not ready, showing loader...");
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color="#11C76F" />
@@ -27,6 +31,7 @@ export default function RootLayout() {
     );
   }
 
+  console.log("[RootLayout] App ready, rendering stack...");
   try {
     return (
       <>
@@ -40,6 +45,7 @@ export default function RootLayout() {
       </>
     );
   } catch (err) {
+    console.error("[RootLayout] Render error:", err);
     return (
       <View style={styles.loading}>
         <Text style={{ color: 'red', textAlign: 'center', padding: 20 }}>

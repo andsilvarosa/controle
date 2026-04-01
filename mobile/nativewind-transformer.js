@@ -17,7 +17,8 @@ async function waitForGeneratedCss(filePath) {
 }
 
 async function transform(config, projectRoot, filename, data, options) {
-  if (path.resolve(process.cwd(), filename) === config.nativewind.input) {
+  const absolutePath = path.isAbsolute(filename) ? filename : path.resolve(projectRoot, filename);
+  if (absolutePath === config.nativewind.input) {
     if (options.platform !== "web" && options.dev && options.hot) {
       return metroTransformWorker.transform(
         config,

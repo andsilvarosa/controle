@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "SOS Controle",
+    "slug": "sos-controle",
+    "version": "1.0.0",
+    "scheme": "soscontrole",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "./plugins/withBankNotifications"
+    ],
+    "android": {
+      "package": "com.soscontrole.app"
+    }
+  }
+}

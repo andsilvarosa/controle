@@ -416,18 +416,18 @@ export const Dashboard: React.FC = () => {
                                       </span>
 
                                       <div className="flex items-center gap-2">
-                                          <button 
-                                             onClick={(e) => handleStatusToggle(e, t)}
-                                             className={`p-2.5 rounded-xl transition-all ${confirmActionId === t.id ? 'bg-orange-100 text-orange-600' : (t.isPaid ? 'bg-brand-green/10 text-brand-green' : 'bg-brand-gray dark:bg-brand-dark/50 text-brand-dark/40 hover:text-brand-green')}`}
-                                             title={t.isPaid ? "Marcar como pendente" : "Marcar como pago"}
-                                          >
+<button 
+                                              onClick={(e) => handleStatusToggle(e, t)}
+                                              className={`p-2.5 rounded-xl transition-all ${confirmActionId === t.id ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/50 dark:text-orange-400' : (t.isPaid ? 'bg-brand-green/10 text-brand-green dark:bg-brand-green/20' : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 hover:text-brand-green dark:hover:text-brand-green')}`}
+                                              title={t.isPaid ? "Marcar como pendente" : "Marcar como pago"}
+                                           >
                                               {confirmActionId === t.id ? <HelpCircle size={20} /> : <CheckCircle2 size={20} />}
                                           </button>
-                                          <button 
-                                             onClick={(e) => handleDelete(e, t)}
-                                             className={`p-2.5 rounded-xl transition-all ${isConfirming ? 'bg-red-500 text-white shadow-lg scale-110' : 'text-brand-dark/20 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
-                                             title="Excluir"
-                                          >
+<button 
+                                              onClick={(e) => handleDelete(e, t)}
+                                              className={`p-2.5 rounded-xl transition-all ${isConfirming ? 'bg-red-500 text-white shadow-lg scale-110' : 'text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 dark:text-slate-500'}`}
+                                              title="Excluir"
+                                           >
                                               {isConfirming ? <XCircle size={20} /> : <Trash2 size={20} />}
                                           </button>
                                       </div>

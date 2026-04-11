@@ -415,7 +415,7 @@ export const Dashboard: React.FC = () => {
                                          {t.type === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
                                       </span>
 
-                                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <div className="flex items-center gap-2">
                                           <button 
                                              onClick={(e) => handleStatusToggle(e, t)}
                                              className={`p-2.5 rounded-xl transition-all ${confirmActionId === t.id ? 'bg-orange-100 text-orange-600' : (t.isPaid ? 'bg-brand-green/10 text-brand-green' : 'bg-brand-gray dark:bg-brand-dark/50 text-brand-dark/40 hover:text-brand-green')}`}

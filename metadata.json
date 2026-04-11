@@ -1,5 +1,7 @@
 {
   "name": "SOS Controle",
-  "description": "O Projeto é uma aplicação completa para controle financeiro pessoal, desenvolvida com foco em simplicidade, segurança e experiência visual. O sistema permite gerenciar receitas, despesas, carteiras multi-moeda, orçamentos por categoria, relatórios visuais com gráficos interativos e projeção futura",
-  "requestFramePermissions": []
+  "description": "A high-end financial management dashboard with advanced reporting, automation rules, and Excel integration.",
+  "requestFramePermissions": [
+    "camera"
+  ]
 }

@@ -5,27 +5,27 @@ import jwt from '@tsndr/cloudflare-worker-jwt';
  */
 
 export const getSecurityHeaders = (origin: string | null = null) => {
-  const headers: any = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie, X-CSRF-Token',
-    'Access-Control-Allow-Credentials': 'true',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-    'Content-Security-Policy': "default-src 'self' https://esm.sh; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://esm.sh https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://picsum.photos https://*.googleusercontent.com https://grainy-gradients.vercel.app; connect-src 'self' https://*.run.app https://*.sostec.top https://esm.sh https://static.cloudflareinsights.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self';",
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
-    'X-Permitted-Cross-Domain-Policies': 'none',
-  };
+    const headers: any = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, Cookie, X-CSRF-Token',
+        'Access-Control-Allow-Credentials': 'true',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'X-XSS-Protection': '1; mode=block',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+        'Content-Security-Policy': "default-src 'self' https://esm.sh; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://esm.sh https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://picsum.photos https://*.googleusercontent.com https://grainy-gradients.vercel.app; connect-src 'self' https://*.run.app https://*.pages.dev https://*.sostec.top https://esm.sh https://static.cloudflareinsights.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self';",
+        'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+        'X-Permitted-Cross-Domain-Policies': 'none',
+    };
 
-  if (origin) {
-    // Em produção, você deve validar o origin contra uma whitelist
-    headers['Access-Control-Allow-Origin'] = origin;
-  }
+    if (origin) {
+        // Em produção, você deve validar o origin contra uma whitelist
+        headers['Access-Control-Allow-Origin'] = origin;
+    }
 
-  return headers;
+    return headers;
 };
 
 /**
@@ -34,12 +34,12 @@ export const getSecurityHeaders = (origin: string | null = null) => {
 export const checkRateLimit = async (sql: any, key: string, limit: number, windowSeconds: number): Promise<{ success: boolean; remaining: number }> => {
     const now = new Date();
     const expiresAt = new Date(now.getTime() + windowSeconds * 1000);
-    
+
     // Limpar registros expirados (opcional, pode ser feito em cron)
     // await sql("DELETE FROM rate_limits WHERE expires_at < CURRENT_TIMESTAMP");
 
     const rows = await sql("SELECT attempts, expires_at FROM rate_limits WHERE key = $1", [key]);
-    
+
     if (rows.length === 0) {
         await sql("INSERT INTO rate_limits (key, attempts, expires_at) VALUES ($1, 1, $2)", [key, expiresAt]);
         return { success: true, remaining: limit - 1 };
@@ -109,12 +109,12 @@ export const validateSession = async (request: Request, secret: string, sql: any
         if (sessionId) {
             const sessionCheck = await sql("SELECT id FROM sessions WHERE id = $1 AND user_id = $2", [sessionId, userId]);
             if (sessionCheck.length === 0) return { isValid: false, error: "Sessão revogada", status: 401 };
-            
+
             // Atualizar last_active de forma assíncrona
             if (waitUntil) {
                 waitUntil(sql("UPDATE sessions SET last_active = CURRENT_TIMESTAMP WHERE id = $1", [sessionId]));
             }
-            
+
             return { isValid: true, userId, sessionId };
         }
 
@@ -128,11 +128,11 @@ export const validateSession = async (request: Request, secret: string, sql: any
  * Sanitiza strings para remover tags HTML básicas e evitar XSS.
  */
 export const sanitizeInput = (input: string): string => {
-  if (typeof input !== 'string') return input;
-  return input
-    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "")
-    .replace(/<[^>]*>?/gm, "")
-    .trim();
+    if (typeof input !== 'string') return input;
+    return input
+        .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "")
+        .replace(/<[^>]*>?/gm, "")
+        .trim();
 };
 
 /**
@@ -148,24 +148,24 @@ export const logAction = async (sql: any, userId: string | null, action: string,
 };
 
 export const validatePassword = (password: string): { valid: boolean; message?: string } => {
-  if (!password || password.length < 8) {
-    return { valid: false, message: "A senha deve ter pelo menos 8 caracteres." };
-  }
-  
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumbers = /\d/.test(password);
-  const hasNonalphas = /\W/.test(password);
-  
-  if (password.length < 10 && (!hasUpperCase || !hasLowerCase || !hasNumbers)) {
-      return { valid: false, message: "Senha fraca. Use pelo menos 8 caracteres misturando letras e números." };
-  }
+    if (!password || password.length < 8) {
+        return { valid: false, message: "A senha deve ter pelo menos 8 caracteres." };
+    }
 
-  return { valid: true };
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasNonalphas = /\W/.test(password);
+
+    if (password.length < 10 && (!hasUpperCase || !hasLowerCase || !hasNumbers)) {
+        return { valid: false, message: "Senha fraca. Use pelo menos 8 caracteres misturando letras e números." };
+    }
+
+    return { valid: true };
 };
 
 export const validateEmail = (email: string): boolean => {
-  if (!email) return false;
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
+    if (!email) return false;
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
 };
